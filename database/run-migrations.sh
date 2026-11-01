@@ -5,6 +5,9 @@
 # Descripción: Ejecuta de forma ordenada y reproducible todos los scripts SQL
 #              versionados y numerados (01 al 11) dentro del contenedor
 #              SQL Server (shopcart-sqlserver).
+# Uso:
+#   ./database/run-migrations.sh          # Ejecución idempotente
+#   ./database/run-migrations.sh --reset  # Recrea ShopCartDB desde cero
 # ============================================================================
 
 set -euo pipefail
@@ -25,8 +28,17 @@ echo "==========================================================================
 echo "Iniciando ejecución de migraciones y semillas en SQL Server (${CONTAINER_NAME})"
 echo "============================================================================"
 
-# Detectar ruta de sqlcmd dentro del contenedor
 SQLCMD_BIN=$(docker exec "${CONTAINER_NAME}" sh -c 'if [ -x /opt/mssql-tools18/bin/sqlcmd ]; then echo /opt/mssql-tools18/bin/sqlcmd; else echo /opt/mssql-tools/bin/sqlcmd; fi')
+
+if [[ "${1:-}" == "--reset" ]]; then
+  echo "-> Recreando base de datos [ShopCartDB] desde cero (--reset)..."
+  docker exec "${CONTAINER_NAME}" "${SQLCMD_BIN}" \
+    -S localhost \
+    -U "${DB_USER}" \
+    -P "${DB_PASSWORD}" \
+    -C -b \
+    -Q "IF DB_ID(N'ShopCartDB') IS NOT NULL BEGIN ALTER DATABASE [ShopCartDB] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [ShopCartDB]; END"
+fi
 
 SCRIPTS=(
   "01_Database_And_Config.sql"
@@ -49,9 +61,9 @@ for script in "${SCRIPTS[@]}"; do
     -U "${DB_USER}" \
     -P "${DB_PASSWORD}" \
     -C -b \
-    -i "/database/${script}"
+    -i "/database/${script}" > /dev/null
 done
 
 echo "============================================================================"
-echo "Migraciones y datos semilla completados exitosamente."
+echo "✅ Migraciones y datos semilla completados exitosamente."
 echo "============================================================================"
