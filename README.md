@@ -475,3 +475,10 @@ stateDiagram-v2
 | **RF-08 Dashboard** | `GET /api/dashboard/stream` | `Operador`, `Admin` | Stream SSE en Tiempo Real |
 | **RF-08 Dashboard** | `GET /api/dashboard/abandoned-carts` | `Operador`, `Admin` | `SP_Dashboard_ListarCarritosAbandonados` |
 | **RF-09 Bitácora** | `GET /api/audit-logs` | `Administrador` | `SP_Bitacora_Listar` |
+
+---
+
+## 9. Licencia
+
+Este proyecto se distribuye bajo la licencia **MIT**. Consulte el archivo [LICENSE](LICENSE) para más detalles.
+
