@@ -410,6 +410,21 @@ async function runTests(): Promise<void> {
     assert.equal(cancelNewOrder.status, 200);
     assert.equal(cancelNewOrder.body.data.EstadoPedido, 'Cancelado');
 
+    // Transición no permitida: un pedido Cancelado es estado terminal -> 422 (backend)
+    const invalidTransition = await request('PATCH', `/api/orders/${idPedidoConcurrencia}/state`, {
+      token: opToken,
+      body: { estadoNuevo: 'Despachado', motivoComentario: 'Intento de transición inválida' },
+    });
+    assert.equal(invalidTransition.status, 422, 'Cancelado -> Despachado debe rechazarse con 422');
+    assert.equal(invalidTransition.body.error?.code, 'INVALID_ORDER_STATE_TRANSITION');
+
+    // Saltar estados (Entregado -> Pagado) también debe rechazarse
+    const backwardsTransition = await request('PATCH', '/api/orders/1/state', {
+      token: opToken,
+      body: { estadoNuevo: 'Pagado', motivoComentario: 'Intento de regresar estado' },
+    });
+    assert.equal(backwardsTransition.status, 422, 'Retroceder estado debe rechazarse con 422');
+
     console.log('  ✅ RF-06 y RF-07 (Concurrencia, Idempotencia y Reintegro a Kardex) superados con éxito.');
 
     // -------------------------------------------------------------------------
