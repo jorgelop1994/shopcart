@@ -44,7 +44,10 @@ npm run dev
 ```
 
 * **Healthcheck del API:** `http://localhost:4000/api/health`
-* **Documentación de Endpoints:** `http://localhost:4000/api/docs`
+* **Documentación Interactiva Swagger UI:** `http://localhost:4000/api/docs` (Consola interactiva OpenAPI 3.0 para probar endpoints)
+* **Especificación OpenAPI en JSON:** `http://localhost:4000/api/docs.json`
+* **Análisis estático de código (ESLint):** `npm run lint`
+* **Verificación de tipado estricto:** `npm run typecheck`
 
 ### Ejecución de la Suite Automatizada de Pruebas (`RF-01` a `RF-09`)
 Para verificar automáticamente todos los criterios de aceptación (incluyendo concurrencia por la última unidad, idempotencia por doble clic, protección anti-IDOR `403`, expiración de token `401`, cupones, devoluciones y rendimiento `< 1s` del dashboard):
