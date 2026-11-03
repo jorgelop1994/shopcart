@@ -18,11 +18,13 @@ SET NOCOUNT ON;
 SET XACT_ABORT ON;
 GO
 
--- Si ya existen datos semilla en Productos, omitir para mantener idempotencia
+-- Si ya existen datos semilla en Productos, omitir para mantener idempotencia.
+-- RETURN solo sale del lote actual; SET NOEXEC ON detiene la ejecución de todos
+-- los lotes siguientes (separados por GO) hasta el SET NOEXEC OFF del final.
 IF EXISTS (SELECT 1 FROM dbo.Productos)
 BEGIN
     PRINT N'Los datos semilla ya se encuentran cargados en [ShopCartDB]. Omitiendo reinserción.';
-    RETURN;
+    SET NOEXEC ON;
 END
 GO
 
@@ -579,4 +581,8 @@ WHERE TokenInvitado = N'guest-seed-token-998877'
 GO
 
 PRINT N'11_Seed_Data.sql ejecutado correctamente.';
+GO
+
+-- Reactivar la ejecución (por si el guard de idempotencia activó NOEXEC)
+SET NOEXEC OFF;
 GO
