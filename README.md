@@ -388,6 +388,20 @@ stateDiagram-v2
 | `Entregado` | `DevueltoParcial` / `DevueltoTotal` | `Operador`, `Administrador` | Reintegra las unidades devueltas en `MovimientosKardex` (`DEVOLUCION_CLIENTE`) y descuenta el monto neto reintegrado en los reportes del Dashboard. |
 | `DevueltoParcial`| `DevueltoParcial` / `DevueltoTotal` | `Operador`, `Administrador` | Permite devolver unidades restantes sin superar jamás `CantidadComprada` por línea. |
 
+### Validación en dos niveles (backend + base de datos)
+
+- **Backend:** [`orderStateMachine.ts`](backend/src/utils/orderStateMachine.ts) replica la tabla anterior y rechaza en la capa de servicio, antes de llegar a la BD, cualquier transición inexistente (`422 INVALID_ORDER_STATE_TRANSITION`) o no autorizada para el rol (`403 FORBIDDEN_ORDER_STATE_TRANSITION`).
+- **Base de datos:** `SP_Pedidos_CambiarEstado` vuelve a validar contra `dbo.TransicionesEstadoPedido` bajo `UPDLOCK, HOLDLOCK`, lo que protege también ante solicitudes simultáneas.
+
+### Liberación automática de reservas vencidas
+
+- La existencia disponible (`FU_Catalogo_PrecioVigente` / `VW_Inventario_ExistenciaDisponible`) **ignora siempre** las reservas con `FechaExpiracion` vencida, así que el stock se libera en el instante en que vence, sin depender de ningún proceso.
+- Además, el servidor ejecuta cada 60 s `SP_Inventario_LiberarReservasVencidas` ([`server.ts`](backend/src/server.ts)) para marcar formalmente esas reservas como `EXPIRADA`, sin intervención manual.
+
+### Eliminación de categorías
+
+Las categorías no se eliminan físicamente porque tienen productos y ventas asociados. Se **desactivan** (`Activa = 0`, vía `PUT /api/categories/:id`) y la acción queda registrada en la bitácora como `DESACTIVACION`.
+
 ---
 
 ## 6. Decisiones Abiertas Documentadas (Sección 6 del Reto)
