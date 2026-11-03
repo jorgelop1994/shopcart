@@ -22,7 +22,8 @@ fi
 
 CONTAINER_NAME="${DB_CONTAINER_NAME:-shopcart-sqlserver}"
 DB_USER="${DB_USER:-sa}"
-DB_PASSWORD="${DB_PASSWORD:-ShopCart_Dev!2026}"
+# Sin contraseña por defecto en el repositorio: debe venir del archivo .env (ver .env.example)
+DB_PASSWORD="${DB_PASSWORD:?ERROR: defina DB_PASSWORD en .env (cp .env.example .env)}"
 
 echo "============================================================================"
 echo "Iniciando ejecución de migraciones y semillas en SQL Server (${CONTAINER_NAME})"
