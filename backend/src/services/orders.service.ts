@@ -5,6 +5,7 @@ import {
 } from '../repositories/orders.repository';
 import { UserRole } from '../middlewares/authMiddleware';
 import { AppError } from '../utils/AppError';
+import { assertTransitionAllowed } from '../utils/orderStateMachine';
 import {
   getCachedReport,
   setCachedReport,
@@ -150,6 +151,16 @@ export class OrdersService {
     estadoNuevo: string;
     motivoComentario?: string | null;
   }) {
+    // 1. Validación en backend (RF-07). obtenerDetallePedido ya aplica la regla
+    //    anti-IDOR: un Cliente solo puede leer sus propios pedidos.
+    const actual = await ordersRepository.obtenerDetallePedido({
+      idPedido: data.idPedido,
+      idUsuarioEjecutor: data.idUsuarioEjecutor,
+      rolEjecutor: data.rolEjecutor,
+    });
+    assertTransitionAllowed(actual.EstadoPedido, data.estadoNuevo, data.rolEjecutor);
+
+    // 2. Validación definitiva en BD bajo bloqueo (SP_Pedidos_CambiarEstado)
     const row = await ordersRepository.cambiarEstadoPedido(data);
     const formatted = formatOrderDetail(row);
 
