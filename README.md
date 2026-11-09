@@ -1,6 +1,6 @@
 # ShopCart — Plataforma Web de Ventas (Tech Challenge 360 · Grupo Pentandra / Don Arturo)
 
-Plataforma de comercio electrónico de nivel productivo diseñada bajo una arquitectura estricta orientada a la integridad transaccional en **Microsoft SQL Server 2019/2022** (con acceso **100% mediante Stored Procedures**) y **Backend en Capas con Node.js 24 LTS + TypeScript (`strict`) + Express**.
+Plataforma de comercio electrónico de nivel productivo diseñada bajo una arquitectura estricta orientada a la integridad transaccional en **Microsoft SQL Server 2019/2022** (con acceso **100% mediante Stored Procedures**), **Backend en Capas con Node.js 24 LTS + TypeScript (`strict`) + Express** y **Frontend SPA con React 18 + TypeScript (`strict`) + Vite + Tailwind CSS v4 + Recharts**.
 
 ---
 
@@ -37,17 +37,24 @@ docker compose up -d
 # (Opcional) Si desea recrear la base de datos desde cero en cualquier momento:
 ./database/run-migrations.sh --reset
 
-# 4. Instalar dependencias del Backend e iniciar el servidor en modo desarrollo
+# 4. Instalar dependencias del Backend e iniciar el servidor en modo desarrollo (Puerto 4000)
 cd backend
+npm install
+npm run dev
+
+# 5. En otra terminal, instalar dependencias del Frontend e iniciar la aplicación web React (Puerto 5173)
+cd frontend
 npm install
 npm run dev
 ```
 
+* **Aplicación Web Frontend (React 18 + TS):** `http://localhost:5173`
 * **Healthcheck del API:** `http://localhost:4000/api/health`
 * **Documentación Interactiva Swagger UI:** `http://localhost:4000/api/docs` (Consola interactiva OpenAPI 3.0 para probar endpoints)
 * **Especificación OpenAPI en JSON:** `http://localhost:4000/api/docs.json`
-* **Análisis estático de código (ESLint):** `npm run lint`
-* **Verificación de tipado estricto:** `npm run typecheck`
+* **Análisis estático de código (ESLint en Backend y Frontend):** `npm run lint` (`0` warnings)
+* **Verificación de tipado estricto (`tsc --noEmit`):** `npm run typecheck`
+* **Compilación de producción (Backend y Frontend):** `npm run build`
 
 ### Ejecución de la Suite Automatizada de Pruebas (`RF-01` a `RF-09`)
 Para verificar automáticamente todos los criterios de aceptación (incluyendo concurrencia por la última unidad, idempotencia por doble clic, protección anti-IDOR `403`, expiración de token `401`, cupones, devoluciones y rendimiento `< 1s` del dashboard):
@@ -116,13 +123,27 @@ Todas las contraseñas en la base de datos están cifradas con `bcrypt` (`10` sa
     │   └── utils/                         # AppError, asyncHandler y caché/SSE del Dashboard
     └── tests/
         └── integration.test.ts            # Suite automatizada de pruebas de integración y concurrencia
+└── frontend/                              # Aplicación SPA en React 18 + TypeScript (strict) + Vite
+    ├── package.json
+    ├── tsconfig.json
+    ├── vite.config.ts
+    ├── eslint.config.mjs                  # Configuración ESLint 9 con 0 warnings permitidos
+    └── src/
+        ├── api/                           # Clientes HTTP tipados con rotación transparente de Refresh Token
+        ├── context/                       # Contextos globales (AuthContext, CartContext, ToastContext)
+        ├── components/                    # Componentes UI reutilizables (<dialog> nativo, tablas server-side, badges)
+        ├── pages/                         # Vistas organizadas por dominio (auth, store, admin/operaciones)
+        ├── types/                         # Contratos TypeScript estrictos (0 uso de any)
+        └── utils/                         # Formateadores GTQ (Q), fechas es-GT y reglas de máquina de estados
 ```
 
 ### Justificación de Librerías Elegidas
-1. **`mssql` (Driver nativo sin ORM):** Cumple la restricción obligatoria de no utilizar ningún ORM ni consultas SQL embebidas. Se encapsuló en `executeStoredProcedure()`, que valida por expresión regular que solo se ejecuten objetos `dbo.SP_*` con parámetros tipados (`request.input()`).
-2. **`zod`:** Garantiza que ningún payload malformado llegue a la capa de servicios o a la base de datos, devolviendo mensajes de validación claros por campo.
-3. **`jsonwebtoken` + `bcryptjs`:** Implementa tokens de acceso JWT de corta duración (`15m`) y Refresh Tokens rotativos almacenados como hashes SHA-256 en SQL Server.
-4. **`helmet`, `cors` y `express-rate-limit`:** Cumplen los requerimientos no funcionales de seguridad y el extra opcional de *Rate Limiting* en los endpoints de autenticación.
+1. **`mssql` (Driver nativo sin ORM en Backend):** Cumple la restricción obligatoria de no utilizar ningún ORM ni consultas SQL embebidas. Se encapsuló en `executeStoredProcedure()`, que valida por expresión regular que solo se ejecuten objetos `dbo.SP_*` con parámetros tipados (`request.input()`).
+2. **`zod` (Backend):** Garantiza que ningún payload malformado llegue a la capa de servicios o a la base de datos, devolviendo mensajes de validación claros por campo.
+3. **`jsonwebtoken` + `bcryptjs` (Backend):** Implementa tokens de acceso JWT de corta duración (`15m`) y Refresh Tokens rotativos almacenados como hashes SHA-256 en SQL Server.
+4. **`helmet`, `cors` y `express-rate-limit` (Backend):** Cumplen los requerimientos no funcionales de seguridad y el extra opcional de *Rate Limiting* en los endpoints de autenticación.
+5. **`react` 18 + `react-router-dom` v6 + `typescript` (`strict: true`) (Frontend):** Provee enrutamiento declarativo con guardias por rol (`ProtectedRoute` para `Cliente`, `Operador` y `Administrador`), separación estricta entre vistas y servicios HTTP (`src/api/*`), y renovación transparente *single-flight* del Access Token al expirar.
+6. **`recharts` + `lucide-react` + `tailwindcss` v4 (Frontend):** Implementa las visualizaciones interactivas del Dashboard gerencial (`RF-08`) conectadas en tiempo real por *Server-Sent Events* (`EventSource`), junto con diseño responsivo adaptable a móvil y escritorio, modales nativos `<dialog>` accesibles y tablas con paginación, filtrado y ordenamiento 100% en el servidor.
 
 ---
 
