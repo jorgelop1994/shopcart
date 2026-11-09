@@ -182,6 +182,7 @@ export class AuthService {
     nombreRol?: string;
     activo?: boolean;
     busqueda?: string;
+    ordenarPor?: string;
   }) {
     const rows = await authRepository.listarUsuarios(filters);
     const totalRegistros = rows[0]?.TotalRegistros ?? 0;

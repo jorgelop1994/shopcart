@@ -91,6 +91,7 @@ export class CartController {
       tamanoPagina: Number(req.query.tamanoPagina ?? 15),
       activo: req.query.activo !== undefined ? req.query.activo === 'true' : undefined,
       busqueda: req.query.busqueda as string | undefined,
+      ordenarPor: req.query.ordenarPor as string | undefined,
     });
     res.status(200).json({ ok: true, data });
   }

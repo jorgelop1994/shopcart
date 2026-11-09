@@ -208,7 +208,8 @@ CREATE OR ALTER PROCEDURE dbo.SP_Bitacora_Listar
     @IDUsuario    INT           = NULL,
     @FechaInicio  DATETIME2(3)  = NULL,
     @FechaFin     DATETIME2(3)  = NULL,
-    @Busqueda     NVARCHAR(100) = NULL
+    @Busqueda     NVARCHAR(100) = NULL,
+    @OrdenarPor   NVARCHAR(30)  = N'recientes'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -255,7 +256,12 @@ BEGIN
     )
     SELECT *
     FROM BitacoraFiltrada
-    ORDER BY FechaHora DESC, IDBitacora DESC
+    ORDER BY
+        CASE WHEN @OrdenarPor = N'antiguos'   THEN FechaHora END ASC,
+        CASE WHEN @OrdenarPor = N'modulo_asc' THEN Modulo END ASC,
+        CASE WHEN @OrdenarPor = N'accion_asc' THEN Accion END ASC,
+        FechaHora DESC,
+        IDBitacora DESC
     OFFSET @Offset ROWS FETCH NEXT @TamanoPagina ROWS ONLY;
 END
 GO

@@ -233,6 +233,7 @@ export class CatalogRepository {
     fechaInicio?: Date;
     fechaFin?: Date;
     busqueda?: string;
+    ordenarPor?: string;
   }) {
     const result = await executeStoredProcedure<Record<string, unknown> & { TotalRegistros?: number }>(
       'SP_Inventario_ConsultarKardex',
@@ -245,6 +246,7 @@ export class CatalogRepository {
         { name: 'FechaInicio', type: sql.DateTime2(3), value: filters.fechaInicio ?? null },
         { name: 'FechaFin', type: sql.DateTime2(3), value: filters.fechaFin ?? null },
         { name: 'Busqueda', type: sql.NVarChar(100), value: filters.busqueda ?? null },
+        { name: 'OrdenarPor', type: sql.NVarChar(30), value: filters.ordenarPor ?? 'recientes' },
       ]
     );
     return result.recordset;
@@ -257,6 +259,7 @@ export class CatalogRepository {
     idProducto?: number;
     soloBajoStock?: boolean;
     busqueda?: string;
+    ordenarPor?: string;
   }) {
     const result = await executeStoredProcedure<Record<string, unknown> & { TotalRegistros?: number }>(
       'SP_Inventario_ObtenerExistencias',
@@ -267,6 +270,7 @@ export class CatalogRepository {
         { name: 'IDProducto', type: sql.Int, value: filters.idProducto ?? null },
         { name: 'SoloBajoStock', type: sql.Bit, value: filters.soloBajoStock ? 1 : 0 },
         { name: 'Busqueda', type: sql.NVarChar(100), value: filters.busqueda ?? null },
+        { name: 'OrdenarPor', type: sql.NVarChar(30), value: filters.ordenarPor ?? 'disponible_asc' },
       ]
     );
     return result.recordset;

@@ -149,6 +149,7 @@ export class CatalogController {
       fechaInicio: req.query.fechaInicio ? new Date(String(req.query.fechaInicio)) : undefined,
       fechaFin: req.query.fechaFin ? new Date(String(req.query.fechaFin)) : undefined,
       busqueda: req.query.busqueda as string | undefined,
+      ordenarPor: req.query.ordenarPor as string | undefined,
     });
     res.status(200).json({ ok: true, data });
   }
@@ -161,6 +162,7 @@ export class CatalogController {
       idProducto: req.query.idProducto ? Number(req.query.idProducto) : undefined,
       soloBajoStock: req.query.soloBajoStock === 'true',
       busqueda: req.query.busqueda as string | undefined,
+      ordenarPor: req.query.ordenarPor as string | undefined,
     });
     res.status(200).json({ ok: true, data });
   }

@@ -188,6 +188,7 @@ export class CatalogService {
     fechaInicio?: Date;
     fechaFin?: Date;
     busqueda?: string;
+    ordenarPor?: string;
   }) {
     const rows = await catalogRepository.consultarKardex(filters);
     const totalRegistros = Number(rows[0]?.TotalRegistros ?? 0);
@@ -209,6 +210,7 @@ export class CatalogService {
     idProducto?: number;
     soloBajoStock?: boolean;
     busqueda?: string;
+    ordenarPor?: string;
   }) {
     const rows = await catalogRepository.obtenerExistencias(filters);
     const totalRegistros = Number(rows[0]?.TotalRegistros ?? 0);

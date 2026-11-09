@@ -1065,7 +1065,8 @@ CREATE OR ALTER PROCEDURE dbo.SP_Inventario_ConsultarKardex
     @TipoMovimiento NVARCHAR(30)  = NULL,
     @FechaInicio    DATETIME2(3)  = NULL,
     @FechaFin       DATETIME2(3)  = NULL,
-    @Busqueda       NVARCHAR(100) = NULL
+    @Busqueda       NVARCHAR(100) = NULL,
+    @OrdenarPor     NVARCHAR(30)  = N'recientes'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1097,7 +1098,13 @@ BEGIN
     )
     SELECT *
     FROM KardexFiltrado
-    ORDER BY FechaMovimiento DESC, IDMovimientoKardex DESC
+    ORDER BY
+        CASE WHEN @OrdenarPor = N'antiguos'      THEN FechaMovimiento END ASC,
+        CASE WHEN @OrdenarPor = N'cantidad_desc' THEN Cantidad END DESC,
+        CASE WHEN @OrdenarPor = N'cantidad_asc'  THEN Cantidad END ASC,
+        CASE WHEN @OrdenarPor = N'sku_asc'       THEN SKU END ASC,
+        FechaMovimiento DESC,
+        IDMovimientoKardex DESC
     OFFSET @Offset ROWS FETCH NEXT @TamanoPagina ROWS ONLY;
 END
 GO
@@ -1113,7 +1120,8 @@ CREATE OR ALTER PROCEDURE dbo.SP_Inventario_ObtenerExistencias
     @IDCategoria     INT           = NULL,
     @IDProducto      INT           = NULL,
     @SoloBajoStock   BIT           = 0,
-    @Busqueda        NVARCHAR(100) = NULL
+    @Busqueda        NVARCHAR(100) = NULL,
+    @OrdenarPor      NVARCHAR(30)  = N'disponible_asc'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1149,7 +1157,14 @@ BEGIN
     )
     SELECT *
     FROM ExistenciasFiltradas
-    ORDER BY ExistenciaDisponible ASC, IDVariante ASC
+    ORDER BY
+        CASE WHEN @OrdenarPor = N'disponible_desc' THEN ExistenciaDisponible END DESC,
+        CASE WHEN @OrdenarPor = N'fisica_desc'     THEN ExistenciaFisica END DESC,
+        CASE WHEN @OrdenarPor = N'fisica_asc'      THEN ExistenciaFisica END ASC,
+        CASE WHEN @OrdenarPor = N'sku_asc'         THEN SKU END ASC,
+        CASE WHEN @OrdenarPor = N'nombre_asc'      THEN NombreProducto END ASC,
+        ExistenciaDisponible ASC,
+        IDVariante ASC
     OFFSET @Offset ROWS FETCH NEXT @TamanoPagina ROWS ONLY;
 END
 GO

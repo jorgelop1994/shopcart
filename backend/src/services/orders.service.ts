@@ -118,6 +118,7 @@ export class OrdersService {
     fechaInicio?: Date;
     fechaFin?: Date;
     busqueda?: string;
+    ordenarPor?: string;
   }) {
     const rows = await ordersRepository.listarPedidos(filters);
     const totalRegistros = Number(rows[0]?.TotalRegistros ?? 0);
@@ -276,6 +277,7 @@ export class OrdersService {
     fechaInicio?: Date;
     fechaFin?: Date;
     busqueda?: string;
+    ordenarPor?: string;
   }) {
     const rows = await ordersRepository.listarBitacora(filters);
     const totalRegistros = Number(rows[0]?.TotalRegistros ?? 0);

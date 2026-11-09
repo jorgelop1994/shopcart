@@ -310,7 +310,8 @@ CREATE OR ALTER PROCEDURE dbo.SP_Usuarios_Listar
     @TamanoPagina  INT           = 10,
     @NombreRol     NVARCHAR(30)  = NULL,
     @Activo        BIT           = NULL,
-    @Busqueda      NVARCHAR(100) = NULL
+    @Busqueda      NVARCHAR(100) = NULL,
+    @OrdenarPor    NVARCHAR(30)  = N'recientes'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -357,7 +358,15 @@ BEGIN
         FechaModificacion,
         TotalRegistros
     FROM UsuariosFiltrados
-    ORDER BY FechaCreacion DESC, IDUsuario DESC
+    ORDER BY
+        CASE WHEN @OrdenarPor = N'nombre_asc'  THEN NombreCompleto END ASC,
+        CASE WHEN @OrdenarPor = N'nombre_desc' THEN NombreCompleto END DESC,
+        CASE WHEN @OrdenarPor = N'correo_asc'  THEN Correo END ASC,
+        CASE WHEN @OrdenarPor = N'correo_desc' THEN Correo END DESC,
+        CASE WHEN @OrdenarPor = N'rol_asc'     THEN NombreRol END ASC,
+        CASE WHEN @OrdenarPor = N'antiguos'    THEN FechaCreacion END ASC,
+        FechaCreacion DESC,
+        IDUsuario DESC
     OFFSET @Offset ROWS FETCH NEXT @TamanoPagina ROWS ONLY;
 END
 GO

@@ -106,6 +106,7 @@ export class OrdersRepository {
     fechaInicio?: Date;
     fechaFin?: Date;
     busqueda?: string;
+    ordenarPor?: string;
   }) {
     const result = await executeStoredProcedure<Record<string, unknown> & { TotalRegistros?: number }>(
       'SP_Pedidos_Listar',
@@ -119,6 +120,7 @@ export class OrdersRepository {
         { name: 'FechaInicio', type: sql.DateTime2(3), value: filters.fechaInicio ?? null },
         { name: 'FechaFin', type: sql.DateTime2(3), value: filters.fechaFin ?? null },
         { name: 'Busqueda', type: sql.NVarChar(100), value: filters.busqueda ?? null },
+        { name: 'OrdenarPor', type: sql.NVarChar(30), value: filters.ordenarPor ?? 'recientes' },
       ]
     );
     return result.recordset;
@@ -217,6 +219,7 @@ export class OrdersRepository {
     fechaInicio?: Date;
     fechaFin?: Date;
     busqueda?: string;
+    ordenarPor?: string;
   }) {
     const result = await executeStoredProcedure<Record<string, unknown> & { TotalRegistros?: number }>(
       'SP_Bitacora_Listar',
@@ -229,6 +232,7 @@ export class OrdersRepository {
         { name: 'FechaInicio', type: sql.DateTime2(3), value: filters.fechaInicio ?? null },
         { name: 'FechaFin', type: sql.DateTime2(3), value: filters.fechaFin ?? null },
         { name: 'Busqueda', type: sql.NVarChar(100), value: filters.busqueda ?? null },
+        { name: 'OrdenarPor', type: sql.NVarChar(30), value: filters.ordenarPor ?? 'recientes' },
       ]
     );
     return result.recordset;

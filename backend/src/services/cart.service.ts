@@ -82,6 +82,7 @@ export class CartService {
     tamanoPagina: number;
     activo?: boolean;
     busqueda?: string;
+    ordenarPor?: string;
   }) {
     const rows = await cartRepository.listarCupones(filters);
     const totalRegistros = Number(rows[0]?.TotalRegistros ?? 0);

@@ -62,6 +62,7 @@ export class AuthController {
     const activo =
       req.query.activo !== undefined ? req.query.activo === 'true' : undefined;
     const busqueda = req.query.busqueda as string | undefined;
+    const ordenarPor = req.query.ordenarPor as string | undefined;
 
     const result = await authService.listarUsuarios({
       pagina,
@@ -69,6 +70,7 @@ export class AuthController {
       nombreRol,
       activo,
       busqueda,
+      ordenarPor,
     });
 
     res.status(200).json({ ok: true, data: result });

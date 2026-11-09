@@ -126,6 +126,7 @@ export class CartRepository {
     tamanoPagina: number;
     activo?: boolean;
     busqueda?: string;
+    ordenarPor?: string;
   }) {
     const result = await executeStoredProcedure<Record<string, unknown> & { TotalRegistros?: number }>(
       'SP_Cupones_Listar',
@@ -138,6 +139,7 @@ export class CartRepository {
           value: typeof filters.activo === 'boolean' ? (filters.activo ? 1 : 0) : null,
         },
         { name: 'Busqueda', type: sql.NVarChar(80), value: filters.busqueda ?? null },
+        { name: 'OrdenarPor', type: sql.NVarChar(30), value: filters.ordenarPor ?? 'recientes' },
       ]
     );
     return result.recordset;

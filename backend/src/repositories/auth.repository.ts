@@ -116,6 +116,7 @@ export class AuthRepository {
     nombreRol?: string;
     activo?: boolean;
     busqueda?: string;
+    ordenarPor?: string;
   }): Promise<DbUserRecord[]> {
     const result = await executeStoredProcedure<DbUserRecord>('SP_Usuarios_Listar', [
       { name: 'Pagina', type: sql.Int, value: filters.pagina },
@@ -127,6 +128,7 @@ export class AuthRepository {
         value: typeof filters.activo === 'boolean' ? (filters.activo ? 1 : 0) : null,
       },
       { name: 'Busqueda', type: sql.NVarChar(100), value: filters.busqueda ?? null },
+      { name: 'OrdenarPor', type: sql.NVarChar(30), value: filters.ordenarPor ?? 'recientes' },
     ]);
     return result.recordset;
   }

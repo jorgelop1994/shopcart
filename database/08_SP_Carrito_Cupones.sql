@@ -638,7 +638,8 @@ CREATE OR ALTER PROCEDURE dbo.SP_Cupones_Listar
     @Pagina       INT          = 1,
     @TamanoPagina INT          = 15,
     @Activo       BIT          = NULL,
-    @Busqueda     NVARCHAR(80) = NULL
+    @Busqueda     NVARCHAR(80) = NULL,
+    @OrdenarPor   NVARCHAR(30) = N'recientes'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -688,7 +689,14 @@ BEGIN
     )
     SELECT *
     FROM CuponesFiltrados
-    ORDER BY FechaCreacion DESC, IDCupon DESC
+    ORDER BY
+        CASE WHEN @OrdenarPor = N'codigo_asc'      THEN Codigo END ASC,
+        CASE WHEN @OrdenarPor = N'codigo_desc'     THEN Codigo END DESC,
+        CASE WHEN @OrdenarPor = N'valor_desc'      THEN ValorDescuento END DESC,
+        CASE WHEN @OrdenarPor = N'usos_desc'       THEN UsosActuales END DESC,
+        CASE WHEN @OrdenarPor = N'vencimiento_asc' THEN FechaFin END ASC,
+        FechaCreacion DESC,
+        IDCupon DESC
     OFFSET @Offset ROWS FETCH NEXT @TamanoPagina ROWS ONLY;
 END
 GO

@@ -22,8 +22,17 @@ declare global {
 
 export function authenticateJWT(req: Request, _res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
+  const queryToken =
+    req.method === 'GET' && typeof req.query.token === 'string'
+      ? req.query.token.trim()
+      : undefined;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const token =
+    authHeader && authHeader.startsWith('Bearer ')
+      ? authHeader.slice(7).trim()
+      : queryToken;
+
+  if (!token) {
     next(
       new AppError(
         401,
@@ -33,8 +42,6 @@ export function authenticateJWT(req: Request, _res: Response, next: NextFunction
     );
     return;
   }
-
-  const token = authHeader.slice(7).trim();
 
   try {
     const payload = jwt.verify(token, env.JWT_ACCESS_SECRET) as AuthenticatedUser & jwt.JwtPayload;

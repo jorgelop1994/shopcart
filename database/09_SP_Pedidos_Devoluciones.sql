@@ -688,7 +688,8 @@ CREATE OR ALTER PROCEDURE dbo.SP_Pedidos_Listar
     @IDUsuarioFiltro   INT           = NULL,
     @FechaInicio       DATETIME2(3)  = NULL,
     @FechaFin          DATETIME2(3)  = NULL,
-    @Busqueda          NVARCHAR(100) = NULL
+    @Busqueda          NVARCHAR(100) = NULL,
+    @OrdenarPor        NVARCHAR(30)  = N'recientes'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -722,7 +723,13 @@ BEGIN
     )
     SELECT *
     FROM PedidosFiltrados
-    ORDER BY FechaCreacion DESC, IDPedido DESC
+    ORDER BY
+        CASE WHEN @OrdenarPor = N'antiguos'   THEN FechaCreacion END ASC,
+        CASE WHEN @OrdenarPor = N'total_desc' THEN TotalPagado END DESC,
+        CASE WHEN @OrdenarPor = N'total_asc'  THEN TotalPagado END ASC,
+        CASE WHEN @OrdenarPor = N'estado_asc' THEN EstadoPedido END ASC,
+        FechaCreacion DESC,
+        IDPedido DESC
     OFFSET @Offset ROWS FETCH NEXT @TamanoPagina ROWS ONLY;
 END
 GO
