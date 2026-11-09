@@ -11,6 +11,10 @@ import {
   ShieldAlert,
   ShieldCheck,
   ShoppingBag,
+  Terminal,
+  Landmark,
+  Banknote,
+  Truck,
 } from 'lucide-react';
 import { authApi } from '../../api/auth.api';
 import { ordersApi } from '../../api/orders.api';
@@ -32,6 +36,33 @@ function generateIdempotencyKey(): string {
   const randomPart = Math.random().toString(36).substring(2, 10);
   return `idem-shopcart-${Date.now()}-${randomPart}`;
 }
+
+const PAYMENT_OPTIONS = [
+  {
+    value: 'TARJETA_CREDITO',
+    title: 'Tarjeta de Crédito',
+    subtitle: 'Visa, Mastercard o American Express',
+    icon: CreditCard,
+  },
+  {
+    value: 'TARJETA_DEBITO',
+    title: 'Tarjeta de Débito',
+    subtitle: 'Débito inmediato bancos nacionales',
+    icon: CreditCard,
+  },
+  {
+    value: 'TRANSFERENCIA_BANCARIA',
+    title: 'Transferencia ACH / Depósito',
+    subtitle: 'Banca en línea Guatemala',
+    icon: Landmark,
+  },
+  {
+    value: 'PAGO_CONTRA_ENTREGA',
+    title: 'Pago Contra Entrega',
+    subtitle: 'Paga al recibir en tu dirección',
+    icon: Banknote,
+  },
+] as const;
 
 export const CheckoutPage: React.FC = () => {
   const { cart, loadingCart, refreshCart } = useCart();
@@ -119,7 +150,7 @@ export const CheckoutPage: React.FC = () => {
 
   const handleReserveStock = async () => {
     if (!cart || cart.items.length === 0) {
-      showToast('El carrito está vacío.', 'warning');
+      showToast('Tu bolsa de compras está vacía.', 'warning');
       return;
     }
     setReserving(true);
@@ -128,14 +159,14 @@ export const CheckoutPage: React.FC = () => {
       setReservation(res);
       setIdempotencyKey(generateIdempotencyKey());
       showToast(
-        `Existencia reservada exitosamente por ${res.MinutosVigencia} minutos (Token: ${res.TokenReserva.slice(0, 8)}...).`,
+        `Unidades apartadas y precio congelado por ${res.MinutosVigencia} minutos.`,
         'success'
       );
     } catch (err) {
       showToast(
         err instanceof HttpError
           ? err.message
-          : 'No fue posible reservar existencia para el carrito.',
+          : 'No fue posible reservar existencia para tu bolsa.',
         'error'
       );
     } finally {
@@ -151,7 +182,7 @@ export const CheckoutPage: React.FC = () => {
       return;
     }
     if (!reservation) {
-      showToast('Primero debes activar la reserva temporal de existencia (Paso 1).', 'warning');
+      showToast('Primero activa la garantía de reserva de stock en el Paso 2.', 'warning');
       return;
     }
 
@@ -178,12 +209,12 @@ export const CheckoutPage: React.FC = () => {
         referenciaPago: payload.referenciaPago,
       });
       await refreshCart();
-      showToast(`¡Pedido ${order.NumeroPedido} confirmado exitosamente!`, 'success');
+      showToast(`¡Compra ${order.NumeroPedido} confirmada con éxito!`, 'success');
     } catch (err) {
       showToast(
         err instanceof HttpError
           ? err.message
-          : 'Ocurrió un error al procesar la confirmación del pedido.',
+          : 'La autorización de pago fue rechazada. Tu reserva de stock sigue protegida.',
         'error'
       );
     } finally {
@@ -199,7 +230,7 @@ export const CheckoutPage: React.FC = () => {
       setCreatedOrder(replayedOrder);
       setIdempotencyReplayCount((prev) => prev + 1);
       showToast(
-        `Respuesta Idempotente verificada: se retornó el mismo pedido ${replayedOrder.NumeroPedido} (ID #${replayedOrder.IDPedido}) sin duplicar cobro ni descontar inventario doble.`,
+        `Idempotencia verificada: se devolvió el mismo pedido ${replayedOrder.NumeroPedido} (#${replayedOrder.IDPedido}) sin doble cobro ni doble descuento de stock.`,
         'info'
       );
     } catch (err) {
@@ -230,7 +261,7 @@ export const CheckoutPage: React.FC = () => {
       await loadAddresses();
       setSelectedAddressId(created.IDDireccion);
       setAddressModalOpen(false);
-      showToast('Dirección agregada y seleccionada para la entrega.', 'success');
+      showToast('Dirección guardada y asignada a tu entrega.', 'success');
     } catch (err) {
       showToast(
         err instanceof HttpError ? err.message : 'No se pudo guardar la dirección.',
@@ -250,119 +281,99 @@ export const CheckoutPage: React.FC = () => {
   if (createdOrder) {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="bg-white rounded-2xl border border-emerald-200 shadow-sm p-6 sm:p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
+        <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-stone-200">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
                 <CheckCircle2 className="w-7 h-7" />
               </div>
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-                  Confirmación Transaccional RF-06
+                <span className="text-xs font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                  Recibo Oficial de Compra · Don Arturo Guatemala
                 </span>
-                <h1 className="text-2xl font-bold text-slate-900 mt-0.5">
-                  ¡Pedido {createdOrder.NumeroPedido} Confirmado!
+                <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-950 mt-0.5">
+                  ¡Gracias por tu compra! ({createdOrder.NumeroPedido})
                 </h1>
                 <p className="text-sm text-slate-600 mt-1">
-                  Precios congelados en snapshot, inventario descontado en Kardex y cupón registrado.
+                  Hemos congelado tus precios y preparado la orden de despacho hacia tu dirección.
                 </p>
               </div>
             </div>
             <StatusBadge status={createdOrder.EstadoPedido} />
           </div>
 
-          {/* Demostrador interactivo de Idempotencia para el Evaluador */}
-          <div className="mt-6 bg-indigo-50/80 border border-indigo-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-indigo-950 font-semibold text-sm">
-                <ShieldCheck className="w-4 h-4 text-indigo-600" />
-                <span>Verificación de Idempotencia en Checkout (`SP_Pedidos_CrearPedido`)</span>
-              </div>
-              <p className="text-xs text-indigo-800">
-                Clave utilizada: <code className="font-mono font-bold">{idempotencyKey}</code>. Si
-                reenvías la solicitud por reintento de red o doble clic, el servidor devuelve el
-                mismo pedido sin duplicar cargos ni descontar inventario dos veces.
-              </p>
-              {idempotencyReplayCount > 0 && (
-                <p className="text-xs font-bold text-emerald-700">
-                  ✓ Reintentos idempotentes verificados: {idempotencyReplayCount} (Mismo IDPedido #
-                  {createdOrder.IDPedido} retornado)
-                </p>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={handleReplayIdempotentRequest}
-              disabled={confirming}
-              className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 disabled:opacity-50 cursor-pointer"
-            >
-              <RefreshCw className={`w-4 h-4 ${confirming ? 'animate-spin' : ''}`} />
-              Probar Reintento Idempotente
-            </button>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200/80">
-              <span className="text-xs text-slate-500 block">Número de Pedido</span>
-              <span className="text-base font-bold text-slate-900 font-mono">
+            <div className="bg-stone-50 rounded-2xl p-4 border border-stone-200/80">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                Orden de Compra
+              </span>
+              <span className="text-base font-bold text-slate-950 font-mono mt-0.5 block">
                 {createdOrder.NumeroPedido}
               </span>
               <span className="text-xs text-slate-500 block mt-1">
                 {formatDateTimeGT(createdOrder.FechaCreacion)}
               </span>
             </div>
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200/80">
-              <span className="text-xs text-slate-500 block">Método y Referencia de Pago</span>
-              <span className="text-sm font-bold text-slate-900">{createdOrder.MetodoPago}</span>
+            <div className="bg-stone-50 rounded-2xl p-4 border border-stone-200/80">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                Método y Autorización
+              </span>
+              <span className="text-sm font-bold text-slate-950 mt-0.5 block">
+                {createdOrder.MetodoPago}
+              </span>
               <span className="text-xs text-slate-600 block mt-1 font-mono">
                 Ref: {createdOrder.ReferenciaPago ?? 'N/A'}
               </span>
             </div>
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200/80">
-              <span className="text-xs text-slate-500 block">Total Pagado (IVA 12% incl.)</span>
-              <span className="text-lg font-extrabold text-indigo-700">
+            <div className="bg-stone-50 rounded-2xl p-4 border border-stone-200/80">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                Total Pagado (IVA 12% Incl.)
+              </span>
+              <span className="tabular-price text-xl font-extrabold text-emerald-700 mt-0.5 block">
                 {formatGTQ(createdOrder.Total)}
               </span>
               <span className="text-xs text-slate-500 block mt-1">
-                IVA incluido: {formatGTQ(createdOrder.MontoIVAIncluido)}
+                Incluye {formatGTQ(createdOrder.MontoIVAIncluido)} de IVA
               </span>
             </div>
           </div>
 
           <div className="mt-6">
-            <h2 className="text-sm font-bold text-slate-900 mb-3">
-              Detalle de Líneas con Precio Congelado (Snapshot)
+            <h2 className="font-display text-sm font-bold text-slate-950 mb-3">
+              Artículos Adquiridos (Precio Congelado Garantizado)
             </h2>
-            <div className="border border-slate-200 rounded-xl overflow-hidden">
+            <div className="border border-stone-200 rounded-2xl overflow-hidden">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase">
-                    <th className="py-2.5 px-4">SKU / Producto</th>
-                    <th className="py-2.5 px-4 text-center">Cant.</th>
-                    <th className="py-2.5 px-4 text-right">Precio Congelado</th>
-                    <th className="py-2.5 px-4 text-right">Descuento Línea</th>
-                    <th className="py-2.5 px-4 text-right">Total Neto</th>
+                  <tr className="bg-stone-50 border-b border-stone-200 text-[11px] font-bold text-slate-600 uppercase">
+                    <th className="py-3 px-4">Artículo / SKU</th>
+                    <th className="py-3 px-4 text-center">Cant.</th>
+                    <th className="py-3 px-4 text-right">Precio Unitario</th>
+                    <th className="py-3 px-4 text-right">Descuento</th>
+                    <th className="py-3 px-4 text-right">Subtotal</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 text-sm">
+                <tbody className="divide-y divide-stone-200 text-sm">
                   {createdOrder.lineas.map((line) => (
                     <tr key={line.IDDetallePedido}>
-                      <td className="py-3 px-4">
-                        <div className="font-semibold text-slate-900">
+                      <td className="py-3.5 px-4">
+                        <div className="font-bold text-slate-950">
                           {line.NombreProductoSnapshot}
                         </div>
                         <div className="text-xs font-mono text-slate-500">{line.SKUSnapshot}</div>
                       </td>
-                      <td className="py-3 px-4 text-center font-medium">{line.CantidadComprada}</td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3.5 px-4 text-center font-semibold">
+                        {line.CantidadComprada}
+                      </td>
+                      <td className="py-3.5 px-4 text-right tabular-price">
                         {formatGTQ(line.PrecioUnitarioCongelado)}
                       </td>
-                      <td className="py-3 px-4 text-right text-emerald-700">
+                      <td className="py-3.5 px-4 text-right tabular-price text-emerald-700">
                         {line.DescuentoProporcionalLinea > 0
-                          ? `-${formatGTQ(line.DescuentoProporcionalLinea)}`
+                          ? `−${formatGTQ(line.DescuentoProporcionalLinea)}`
                           : 'Q 0.00'}
                       </td>
-                      <td className="py-3 px-4 text-right font-bold text-slate-900">
+                      <td className="py-3.5 px-4 text-right tabular-price font-extrabold text-slate-950">
                         {formatGTQ(line.TotalLineaNeto)}
                       </td>
                     </tr>
@@ -372,18 +383,48 @@ export const CheckoutPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Cápsula de Verificación de Idempotencia para el Evaluador */}
+          <div className="mt-6 rounded-2xl bg-[#0A0F1D] text-stone-200 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-emerald-400 font-mono text-xs font-bold uppercase tracking-wider">
+                <Terminal className="w-4 h-4" />
+                <span>Laboratorio de Idempotencia (Modo Evaluador RF-06)</span>
+              </div>
+              <p className="text-xs text-stone-300 leading-relaxed">
+                Llave enviada: <code className="font-mono text-white font-bold">{idempotencyKey}</code>.
+                Haz clic para reenviar exactamente el mismo payload y comprobar que el servidor
+                devuelve este mismo pedido sin duplicar cobros ni descontar inventario dos veces.
+              </p>
+              {idempotencyReplayCount > 0 && (
+                <p className="text-xs font-bold text-emerald-400 pt-1">
+                  ✓ {idempotencyReplayCount} reintento(s) idempotentes comprobados — Mismo IDPedido #
+                  {createdOrder.IDPedido} retornado.
+                </p>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => void handleReplayIdempotentRequest()}
+              disabled={confirming}
+              className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-emerald-500 text-slate-950 text-xs font-extrabold hover:bg-emerald-400 disabled:opacity-50 cursor-pointer transition"
+            >
+              <RefreshCw className={`w-4 h-4 ${confirming ? 'animate-spin' : ''}`} />
+              Simular Reintento Idempotente
+            </button>
+          </div>
+
           <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
             <Link
               to="/"
-              className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50"
+              className="px-5 py-2.5 rounded-full border border-stone-300 text-slate-800 text-xs font-bold hover:bg-stone-50 transition"
             >
-              Seguir comprando
+              Seguir Explorando la Tienda
             </Link>
             <Link
-              to="/mis-pedidos"
-              className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700"
+              to="/my-orders"
+              className="px-6 py-2.5 rounded-full bg-slate-950 text-white text-xs font-bold hover:bg-emerald-700 transition"
             >
-              Ver en Mis Pedidos
+              Rastrear mi Pedido →
             </Link>
           </div>
         </div>
@@ -392,7 +433,7 @@ export const CheckoutPage: React.FC = () => {
   }
 
   if (loadingCart || loadingAddresses) {
-    return <LoadingState message="Preparando proceso de checkout..." />;
+    return <LoadingState message="Preparando tu checkout seguro..." />;
   }
 
   if (addressError) {
@@ -402,15 +443,15 @@ export const CheckoutPage: React.FC = () => {
   if (!cart || cart.items.length === 0) {
     return (
       <EmptyState
-        title="Tu carrito está vacío"
-        description="Agrega productos del catálogo antes de iniciar el proceso de checkout."
+        title="Tu bolsa de compras está vacía"
+        description="Agrega artículos de nuestra colección antes de iniciar el proceso de pago."
         icon={<ShoppingBag className="w-8 h-8" />}
         action={
           <Link
             to="/"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-950 text-white text-xs font-bold hover:bg-emerald-700"
           >
-            Ir al Catálogo
+            Explorar Colección
           </Link>
         }
       />
@@ -419,39 +460,84 @@ export const CheckoutPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Checkout y Reserva de Inventario</h1>
-        <p className="text-sm text-slate-600 mt-1">
-          Flujo transaccional de dos pasos con bloqueo temporal de stock por 15 minutos e
-          idempotencia ante reintentos (`RF-06`).
-        </p>
+      {/* Encabezado y Stepper de Progreso (Modern Web Guidance: Multi-Page / Multi-Step Forms) */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <span className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+            Checkout Protegido · Guatemala
+          </span>
+          <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-950">
+            Finalizar Compra
+          </h1>
+        </div>
+
+        <nav aria-label="Progreso del checkout">
+          <ol className="flex flex-wrap items-center gap-2 text-xs">
+            <li
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-bold ${
+                selectedAddressId
+                  ? 'bg-emerald-100 text-emerald-900'
+                  : 'bg-slate-950 text-white'
+              }`}
+            >
+              <span>1. Entrega</span>
+            </li>
+            <li
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-bold ${
+                reservation
+                  ? 'bg-emerald-100 text-emerald-900'
+                  : 'bg-stone-200 text-slate-700'
+              }`}
+              aria-current={!reservation ? 'step' : undefined}
+            >
+              <span>2. Reserva 15m</span>
+            </li>
+            <li
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-bold ${
+                reservation
+                  ? 'bg-slate-950 text-white'
+                  : 'bg-stone-200 text-slate-500'
+              }`}
+              aria-current={reservation ? 'step' : undefined}
+            >
+              <span>3. Pago Seguro</span>
+            </li>
+          </ol>
+        </nav>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Paso 1: Dirección de entrega */}
-          <section className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="lg:col-span-8 space-y-6">
+          {/* Paso 1: Dirección de Entrega */}
+          <section className="bg-white rounded-3xl border border-stone-200/90 shadow-xs p-6">
             <div className="flex items-center justify-between gap-4 mb-4">
               <div className="flex items-center gap-2.5">
-                <MapPin className="w-5 h-5 text-indigo-600" />
-                <h2 className="text-base font-bold text-slate-900">
-                  1. Dirección de Entrega en Guatemala
-                </h2>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-950 text-white text-xs font-bold">
+                  1
+                </div>
+                <div>
+                  <h2 className="font-display text-base font-bold text-slate-950">
+                    Dirección de Envío en Guatemala
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Elige dónde deseas recibir tu pedido con cobertura asegurada
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setAddressModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs font-semibold hover:bg-indigo-100 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-stone-300 bg-white text-slate-900 text-xs font-bold hover:border-slate-950 transition cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                Nueva Dirección
+                Agregar Dirección
               </button>
             </div>
 
             {addresses.length === 0 ? (
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-900">
-                No tienes direcciones registradas. Haz clic en <strong>Nueva Dirección</strong> para
-                registrar el destino de tu pedido.
+              <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
+                Aún no tienes una dirección registrada. Haz clic en{' '}
+                <strong>Agregar Dirección</strong> para continuar.
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -460,10 +546,10 @@ export const CheckoutPage: React.FC = () => {
                   return (
                     <label
                       key={addr.IDDireccion}
-                      className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${
+                      className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition ${
                         isSelected
-                          ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20'
-                          : 'border-slate-200 hover:border-slate-300'
+                          ? 'border-slate-950 bg-stone-50 ring-2 ring-slate-950/10'
+                          : 'border-stone-200 hover:border-stone-300'
                       }`}
                     >
                       <input
@@ -471,21 +557,22 @@ export const CheckoutPage: React.FC = () => {
                         name="deliveryAddress"
                         checked={isSelected}
                         onChange={() => setSelectedAddressId(addr.IDDireccion)}
-                        className="mt-1 text-indigo-600 focus:ring-indigo-500"
+                        className="mt-1"
                       />
                       <div className="text-xs space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-900 text-sm">{addr.Alias}</span>
+                          <MapPin className="w-3.5 h-3.5 text-emerald-700" />
+                          <span className="font-bold text-slate-950 text-sm">{addr.Alias}</span>
                           {addr.EsPredeterminada && (
-                            <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-semibold text-[10px]">
-                              Predeterminada
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                              Principal
                             </span>
                           )}
                         </div>
-                        <p className="font-medium text-slate-800">
-                          {addr.NombreDestinatario} • {addr.TelefonoContacto}
+                        <p className="font-semibold text-slate-800">
+                          {addr.NombreDestinatario} · {addr.TelefonoContacto}
                         </p>
-                        <p className="text-slate-600">
+                        <p className="text-slate-500 leading-relaxed">
                           {addr.DireccionExacta}, {addr.ZonaOCodigoPostal ?? ''} {addr.Municipio},{' '}
                           {addr.Departamento}
                         </p>
@@ -497,73 +584,70 @@ export const CheckoutPage: React.FC = () => {
             )}
           </section>
 
-          {/* Paso 2: Reserva Temporal de Existencia (15 min) */}
-          <section className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6">
+          {/* Paso 2: Garantía de Reserva de Stock y Precio Congelado (15 min) */}
+          <section className="bg-white rounded-3xl border border-stone-200/90 shadow-xs p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-indigo-600" />
-                  <h2 className="text-base font-bold text-slate-900">
-                    2. Reserva Temporal de Inventario (`SP_Inventario_ReservarExistencia`)
-                  </h2>
+              <div className="flex items-start gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white text-xs font-bold mt-0.5">
+                  2
                 </div>
-                <p className="text-xs text-slate-600 mt-1">
-                  Bloquea las unidades solicitadas durante 15 minutos con aislamiento{' '}
-                  <code>SERIALIZABLE</code> y <code>UPDLOCK</code> para evitar sobreventa.
-                </p>
+                <div>
+                  <h2 className="font-display text-base font-bold text-slate-950">
+                    Garantía de Reserva de Stock y Precio (15 Minutos)
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Apartamos físicamente tus artículos y congelamos su precio en Quetzales mientras
+                    completas tu pago sin riesgo de que otro comprador tome la última unidad.
+                  </p>
+                </div>
               </div>
 
               <button
                 type="button"
-                onClick={handleReserveStock}
+                onClick={() => void handleReserveStock()}
                 disabled={reserving}
-                className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 disabled:opacity-50 cursor-pointer"
+                className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-950 text-white text-xs font-bold hover:bg-emerald-700 disabled:opacity-50 cursor-pointer transition"
               >
-                <Lock className="w-4 h-4" />
+                <Lock className="w-3.5 h-3.5" />
                 {reserving
-                  ? 'Reservando stock...'
+                  ? 'Protegiendo stock...'
                   : reservation
-                    ? 'Renovar Reserva (15 min)'
-                    : 'Reservar Existencia (15 min)'}
+                    ? 'Renovar Ventana (15 min)'
+                    : 'Activar Reserva de 15 Minutos'}
               </button>
             </div>
 
             {reservation && (
-              <div className="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 space-y-3">
+              <div className="mt-5 p-4 rounded-2xl bg-emerald-50/90 border border-emerald-200 space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="text-xs text-emerald-950">
-                    <span className="font-bold">Token de Reserva Activo:</span>{' '}
-                    <code className="font-mono bg-white px-2 py-0.5 rounded border border-emerald-200">
+                  <div className="flex items-center gap-2 text-xs text-emerald-950">
+                    <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                    <span className="font-bold">Stock apartado con éxito</span>
+                    <code className="font-mono text-[11px] bg-white px-2 py-0.5 rounded border border-emerald-200">
                       {reservation.TokenReserva}
                     </code>
                   </div>
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-700 text-white text-xs font-bold">
+                  <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-700 text-white text-xs font-extrabold tabular-price">
                     <Clock className="w-3.5 h-3.5" />
-                    Tiempo restante: {formatCountdown(remainingSeconds)}
+                    Expira en: {formatCountdown(remainingSeconds)}
                   </div>
                 </div>
 
-                <div className="text-xs text-emerald-900">
-                  Precios congelados durante la ventana de reserva ({reservation.detalleReserva.length}{' '}
-                  variantes apartadas en <code>ExistenciaReservada</code>):
-                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {reservation.detalleReserva.map((item) => (
                     <div
                       key={item.IDReservaExistencia}
-                      className="bg-white p-2.5 rounded-lg border border-emerald-200/80 flex items-center justify-between text-xs"
+                      className="bg-white p-3 rounded-xl border border-emerald-200/80 flex items-center justify-between text-xs"
                     >
                       <div>
-                        <span className="font-semibold text-slate-900 block">
+                        <span className="font-bold text-slate-950 block">
                           {item.NombreProducto} ({item.NombreVariante})
                         </span>
-                        <span className="font-mono text-slate-500">{item.SKU}</span>
+                        <span className="font-mono text-[11px] text-slate-400">{item.SKU}</span>
                       </div>
-                      <div className="text-right">
-                        <span className="font-bold text-slate-900">
-                          {item.CantidadReservada} x {formatGTQ(item.PrecioCongeladoCheckout)}
-                        </span>
-                      </div>
+                      <span className="tabular-price font-extrabold text-slate-950">
+                        {item.CantidadReservada} × {formatGTQ(item.PrecioCongeladoCheckout)}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -571,80 +655,108 @@ export const CheckoutPage: React.FC = () => {
             )}
           </section>
 
-          {/* Paso 3: Pago e Idempotencia */}
+          {/* Paso 3: Método de Pago + Simulador Técnico para Evaluador */}
           <form
             onSubmit={handleConfirmOrder}
-            className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-5"
+            className="bg-white rounded-3xl border border-stone-200/90 shadow-xs p-6 space-y-6"
           >
-            <div className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-indigo-600" />
-              <h2 className="text-base font-bold text-slate-900">
-                3. Confirmación de Pago e Idempotencia (`SP_Pedidos_CrearPedido`)
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label
-                  htmlFor="checkout-metodo-pago"
-                  className="block text-sm font-medium text-slate-800 mb-1.5"
-                >
-                  Método de Pago <span className="text-rose-600">*</span>
-                </label>
-                <select
-                  id="checkout-metodo-pago"
-                  value={metodoPago}
-                  onChange={(e) => setMetodoPago(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-indigo-600 focus:outline-none"
-                >
-                  <option value="TARJETA_CREDITO">Tarjeta de Crédito (Visa / Mastercard)</option>
-                  <option value="TARJETA_DEBITO">Tarjeta de Débito</option>
-                  <option value="TRANSFERENCIA_BANCARIA">Transferencia Bancaria ACH</option>
-                  <option value="PAGO_CONTRA_ENTREGA">Pago Contra Entrega</option>
-                </select>
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white text-xs font-bold">
+                3
               </div>
-
-              <FormField
-                id="checkout-referencia-pago"
-                label="Referencia / Autorización de Pago"
-                hint="Número de boleta o código de autorización."
-                value={referenciaPago}
-                onChange={(e) => setReferenciaPago(e.target.value)}
-                required
-              />
+              <div>
+                <h2 className="font-display text-base font-bold text-slate-950">
+                  Método de Pago y Confirmación
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Selecciona tu medio de pago preferido en Guatemala
+                </p>
+              </div>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+            {/* Modern Web Guidance (forms): 4 opciones mutuamente excluyentes -> Radio Cards visibles */}
+            <fieldset className="space-y-2.5">
+              <legend className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                Elige cómo deseas pagar <span className="text-rose-600">*</span>
+              </legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {PAYMENT_OPTIONS.map((opt) => {
+                  const Icon = opt.icon;
+                  const active = metodoPago === opt.value;
+                  return (
+                    <label
+                      key={opt.value}
+                      className={`flex items-start gap-3 rounded-2xl border p-3.5 cursor-pointer transition ${
+                        active
+                          ? 'border-slate-950 bg-stone-50 ring-2 ring-slate-950/10'
+                          : 'border-stone-200 hover:border-stone-300'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="metodoPago"
+                        value={opt.value}
+                        checked={active}
+                        onChange={(e) => setMetodoPago(e.target.value)}
+                        className="mt-1"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <Icon className="h-4 w-4 text-emerald-700 shrink-0" />
+                          <span className="text-xs font-bold text-slate-950">{opt.title}</span>
+                        </div>
+                        <p className="mt-0.5 text-[11px] text-slate-500">{opt.subtitle}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <FormField
+              id="checkout-referencia-pago"
+              label="Número de Autorización / Boleta de Pago"
+              hint="Código de referencia bancaria o autorización de pasarela."
+              value={referenciaPago}
+              onChange={(e) => setReferenciaPago(e.target.value)}
+              required
+            />
+
+            {/* Cápsula dedicada: Laboratorio de Pruebas Transaccionales (Modo Evaluador) */}
+            <div className="rounded-2xl bg-[#0A0F1D] text-stone-200 p-4 space-y-3 border border-slate-800">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs font-bold text-slate-700">
-                  Header / Clave de Idempotencia (`Idempotency-Key`):
-                </span>
+                <div className="flex items-center gap-2 text-amber-300 text-xs font-mono font-bold uppercase tracking-wider">
+                  <Terminal className="w-4 h-4" />
+                  <span>Simulador Transaccional para Evaluador (RF-06)</span>
+                </div>
                 <button
                   type="button"
                   onClick={() => setIdempotencyKey(generateIdempotencyKey())}
-                  className="text-xs text-indigo-600 font-semibold hover:underline cursor-pointer"
+                  className="text-[11px] text-emerald-400 font-semibold hover:underline cursor-pointer"
                 >
-                  Regenerar Clave
+                  Generar nueva Idempotency-Key
                 </button>
               </div>
-              <code className="block text-xs font-mono bg-white px-3 py-2 rounded-lg border border-slate-200 text-slate-800">
-                {idempotencyKey}
-              </code>
 
-              <label className="flex items-start gap-2.5 pt-2 cursor-pointer">
+              <div className="flex items-center justify-between gap-2 rounded-xl bg-white/5 px-3 py-2 border border-white/10">
+                <span className="text-[11px] text-stone-400">Idempotency-Key:</span>
+                <code className="text-xs font-mono text-emerald-300 truncate">{idempotencyKey}</code>
+              </div>
+
+              <label className="flex items-start gap-2.5 pt-1 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={simularFalloPago}
                   onChange={(e) => setSimularFalloPago(e.target.checked)}
-                  className="mt-0.5 rounded text-rose-600 focus:ring-rose-500"
+                  className="mt-0.5 rounded"
                 />
-                <span className="text-xs text-slate-700">
-                  <strong className="text-rose-700 inline-flex items-center gap-1">
+                <span className="text-xs text-stone-300 leading-relaxed">
+                  <strong className="text-amber-300 inline-flex items-center gap-1">
                     <ShieldAlert className="w-3.5 h-3.5" />
-                    Simular fallo de pasarela de pago (Prueba RF-06):
+                    Simular rechazo de pasarela bancaria:
                   </strong>{' '}
-                  Verifica que si el cobro es rechazado, no se crea el pedido ni se descuenta el
-                  stock físico y tu reserva permanece activa para reintentar.
+                  Comprueba que si el pago falla, no se crea la orden ni se descuenta el Kardex, y
+                  tu reserva de 15 minutos permanece activa para reintentar.
                 </span>
               </label>
             </div>
@@ -652,61 +764,72 @@ export const CheckoutPage: React.FC = () => {
             <button
               type="submit"
               disabled={confirming || !reservation || remainingSeconds === 0 || !selectedAddressId}
-              className="w-full py-3 px-5 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 disabled:opacity-50 cursor-pointer transition-colors"
+              className="w-full py-4 px-6 rounded-full bg-slate-950 text-white text-sm font-extrabold hover:bg-emerald-700 disabled:opacity-40 cursor-pointer transition-colors shadow-sm"
             >
               {confirming
-                ? 'Procesando transacción...'
+                ? 'Autorizando transacción...'
                 : !reservation
-                  ? 'Primero activa la Reserva Temporal en el Paso 2'
+                  ? 'Activa primero la Reserva de 15 Minutos en el Paso 2'
                   : `Confirmar y Pagar ${formatGTQ(cart.Total)}`}
             </button>
           </form>
         </div>
 
-        {/* Resumen lateral del pedido */}
-        <div className="space-y-4">
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4 sticky top-20">
-            <h2 className="text-base font-bold text-slate-900">Resumen del Carrito</h2>
+        {/* Resumen Lateral Sticky */}
+        <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-4">
+          <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs p-6 space-y-4">
+            <h2 className="font-display text-base font-extrabold text-slate-950">
+              Resumen de tu Bolsa ({cart.CantidadTotalUnidades} u.)
+            </h2>
 
-            <div className="divide-y divide-slate-200 max-h-72 overflow-y-auto pr-1">
+            <div className="divide-y divide-stone-100 max-h-72 overflow-y-auto pr-1">
               {cart.items.map((item) => (
                 <div key={item.IDCarritoItem} className="py-3 flex items-start justify-between gap-3">
                   <div className="text-xs">
-                    <p className="font-semibold text-slate-900">{item.NombreProducto}</p>
+                    <p className="font-bold text-slate-950">{item.NombreProducto}</p>
                     <p className="text-slate-500">
-                      {item.NombreVariante} • Cant: {item.Cantidad}
+                      {item.NombreVariante} · Cant: {item.Cantidad}
                     </p>
                   </div>
-                  <span className="text-xs font-bold text-slate-900 shrink-0">
+                  <span className="tabular-price text-xs font-extrabold text-slate-950 shrink-0">
                     {formatGTQ(item.SubtotalLinea)}
                   </span>
                 </div>
               ))}
             </div>
 
-            <div className="border-t border-slate-200 pt-4 space-y-2 text-sm">
+            <div className="border-t border-stone-100 pt-4 space-y-2 text-xs">
               <div className="flex justify-between text-slate-600">
-                <span>Subtotal Bruto:</span>
-                <span className="font-medium text-slate-900">{formatGTQ(cart.Subtotal)}</span>
+                <span>Subtotal Artículos</span>
+                <span className="tabular-price font-semibold text-slate-950">
+                  {formatGTQ(cart.Subtotal)}
+                </span>
               </div>
               {cart.MontoDescuento > 0 && (
-                <div className="flex justify-between text-emerald-700">
-                  <span>Descuento ({cart.CodigoCupon}):</span>
-                  <span className="font-semibold">-{formatGTQ(cart.MontoDescuento)}</span>
+                <div className="flex justify-between text-emerald-700 font-semibold">
+                  <span>Cupón ({cart.CodigoCupon})</span>
+                  <span className="tabular-price">−{formatGTQ(cart.MontoDescuento)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-xs text-slate-500">
-                <span>Subtotal sin IVA:</span>
-                <span>{formatGTQ(cart.SubtotalSinIVA)}</span>
+              <div className="flex justify-between text-slate-500">
+                <span>Base sin IVA</span>
+                <span className="tabular-price">{formatGTQ(cart.SubtotalSinIVA)}</span>
               </div>
-              <div className="flex justify-between text-xs text-slate-500">
-                <span>IVA (12% incluido):</span>
-                <span>{formatGTQ(cart.MontoIVAIncluido)}</span>
+              <div className="flex justify-between text-slate-500">
+                <span>IVA (12% incluido)</span>
+                <span className="tabular-price">{formatGTQ(cart.MontoIVAIncluido)}</span>
               </div>
-              <div className="flex justify-between text-base font-extrabold text-slate-900 pt-2 border-t border-slate-200">
-                <span>Total a Pagar:</span>
-                <span className="text-indigo-700">{formatGTQ(cart.Total)}</span>
+              <div className="flex items-baseline justify-between pt-3 border-t border-stone-200">
+                <span className="font-display text-sm font-bold text-slate-950">Total Final</span>
+                <span className="tabular-price text-2xl font-extrabold text-slate-950">
+                  {formatGTQ(cart.Total)}
+                </span>
               </div>
+            </div>
+
+            <div className="rounded-2xl bg-stone-50 p-3.5 border border-stone-200/70 flex items-center gap-2.5 text-xs text-slate-600">
+              <Truck className="h-4 w-4 text-emerald-700 shrink-0" />
+              <span>Despacho asegurado con número de guía a toda Guatemala.</span>
             </div>
           </div>
         </div>
@@ -716,7 +839,7 @@ export const CheckoutPage: React.FC = () => {
       <ModalDialog
         open={addressModalOpen}
         onClose={() => setAddressModalOpen(false)}
-        title="Registrar Nueva Dirección de Entrega"
+        title="Registrar Dirección de Entrega"
       >
         <form onSubmit={handleCreateQuickAddress} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -729,7 +852,7 @@ export const CheckoutPage: React.FC = () => {
             />
             <FormField
               id="quick-addr-destinatario"
-              label="Nombre del Destinatario"
+              label="Nombre de quien recibe"
               value={nombreDestinatario}
               onChange={(e) => setNombreDestinatario(e.target.value)}
               required
@@ -771,7 +894,7 @@ export const CheckoutPage: React.FC = () => {
           />
           <FormField
             id="quick-addr-ref"
-            label="Referencia Adicional"
+            label="Referencia de ubicación"
             value={referencia}
             onChange={(e) => setReferencia(e.target.value)}
           />
@@ -779,14 +902,14 @@ export const CheckoutPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setAddressModalOpen(false)}
-              className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50 cursor-pointer"
+              className="px-4 py-2 rounded-full border border-stone-300 text-slate-700 text-xs font-bold hover:bg-stone-50 cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={savingAddress}
-              className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 cursor-pointer"
+              className="px-5 py-2 rounded-full bg-slate-950 text-white text-xs font-bold hover:bg-emerald-700 disabled:opacity-50 cursor-pointer"
             >
               {savingAddress ? 'Guardando...' : 'Guardar Dirección'}
             </button>

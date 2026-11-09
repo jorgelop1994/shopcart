@@ -1,9 +1,66 @@
 @import "tailwindcss";
 
+:root {
+  --brand-obsidian: #0a0f1d;
+  --brand-emerald: #059669;
+  --brand-gold: #d97706;
+  --surface-alabaster: #f8f8f5;
+}
+
 @layer base {
   body {
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.5;
+    text-align: start;
+    background-color: var(--surface-alabaster);
+    color: var(--brand-obsidian);
+    accent-color: var(--brand-emerald);
   }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    letter-spacing: -0.025em;
+  }
+
+  code,
+  pre,
+  .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  }
+}
+
+/* ============================================================================
+   Modern Web Guidance: Typography (clamp, balance, pretty, tabular-nums)
+   ============================================================================ */
+.hero-fluid-title {
+  font-size: clamp(1.85rem, 1.2rem + 2.6vw, 3.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.section-fluid-title {
+  font-size: clamp(1.35rem, 1rem + 1.2vw, 2rem);
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.headline-balance {
+  text-wrap: balance;
+}
+
+.prose-pretty {
+  text-wrap: pretty;
+  max-width: 75ch;
+}
+
+.tabular-price {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 /* ============================================================================
@@ -17,8 +74,8 @@ dialog:modal {
 }
 
 dialog::backdrop {
-  background-color: rgb(15 23 42 / 0.55);
-  backdrop-filter: blur(3px);
+  background-color: rgb(10 15 29 / 0.62);
+  backdrop-filter: blur(4px);
   overflow: hidden;
   overscroll-behavior: contain;
 }
@@ -101,7 +158,8 @@ input:user-valid:not([type="search"]):not([type="checkbox"]):not([type="radio"])
   header,
   footer,
   nav,
-  button {
+  button,
+  .evaluator-dock {
     display: none !important;
   }
 

@@ -1,12 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  ArrowLeft,
   CheckCircle2,
-  ShoppingCart,
+  ShoppingBag,
   ShieldCheck,
   AlertTriangle,
   PackageCheck,
+  Truck,
+  RotateCcw,
+  ChevronRight,
+  Check,
 } from 'lucide-react';
 import { ProductDetailRecord, ProductVariantRecord } from '../../types/api.types';
 import { catalogApi } from '../../api/catalog.api';
@@ -59,21 +62,24 @@ export const ProductDetailPage: React.FC = () => {
     setCantidad(1);
   };
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (goToBag = false) => {
     if (!selectedVariant) return;
     setAdding(true);
     try {
       await addItem(selectedVariant.IDVariante, cantidad);
       showToast({
         type: 'success',
-        title: 'Producto agregado al carrito',
-        message: `${cantidad} x ${product?.Nombre} (${selectedVariant.NombreVariante})`,
+        title: 'Agregado a tu bolsa de compras',
+        message: `${cantidad} × ${product?.Nombre} (${selectedVariant.NombreVariante})`,
       });
+      if (goToBag) {
+        navigate('/cart');
+      }
     } catch (err) {
       showToast({
         type: 'error',
-        title: 'No se pudo agregar al carrito (RF-04)',
-        message: err instanceof Error ? err.message : 'Verifique la existencia disponible.',
+        title: 'Existencia insuficiente',
+        message: err instanceof Error ? err.message : 'Verifique la disponibilidad actual.',
       });
     } finally {
       setAdding(false);
@@ -81,186 +87,242 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingView message="Cargando producto y variantes desde SQL Server..." />;
+    return <LoadingView message="Cargando especificaciones del artículo..." />;
   }
 
   if (error || !product) {
-    return <ErrorStateView message={error ?? 'Producto no encontrado'} onRetry={loadProduct} />;
+    return <ErrorStateView message={error ?? 'Artículo no encontrado'} onRetry={loadProduct} />;
   }
 
   const maxAvailable = selectedVariant?.ExistenciaDisponible ?? 0;
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-indigo-600"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Volver al catálogo
+      {/* Breadcrumbs Semánticos */}
+      <nav aria-label="Ruta de navegación" className="flex items-center gap-2 text-xs text-slate-500">
+        <Link to="/" className="font-medium hover:text-slate-950 transition">
+          Catálogo Oficial
         </Link>
-      </div>
+        <ChevronRight className="h-3.5 w-3.5 text-stone-400" />
+        <span className="font-medium text-slate-700">{product.NombreCategoria}</span>
+        <ChevronRight className="h-3.5 w-3.5 text-stone-400" />
+        <span className="font-semibold text-slate-950 truncate max-w-xs">{product.Nombre}</span>
+      </nav>
 
-      <div className="grid grid-cols-1 gap-8 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs lg:grid-cols-12">
-        {/* Galería de imágenes */}
-        <div className="lg:col-span-5 flex flex-col gap-3">
-          <div className="aspect-square overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start">
+        {/* Columna Izquierda: Galería Visual Sticky */}
+        <div className="lg:col-span-6 lg:sticky lg:top-24 flex flex-col gap-4">
+          <div className="relative aspect-square overflow-hidden rounded-3xl border border-stone-200/90 bg-white shadow-xs">
             {selectedImage ? (
               <img
                 src={selectedImage}
                 alt={product.Nombre}
+                fetchPriority="high"
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
-                Sin imagen disponible
+              <div className="flex h-full w-full items-center justify-center text-xs text-stone-400">
+                Imagen no disponible
               </div>
             )}
+
+            <div className="absolute top-4 left-4">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-md px-3.5 py-1 text-xs font-bold text-slate-950 shadow-xs">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                Garantía Oficial Guatemala
+              </span>
+            </div>
           </div>
+
           {product.imagenes.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {product.imagenes.map((img) => (
-                <button
-                  key={img.IDProductoImagen}
-                  type="button"
-                  onClick={() => setSelectedImage(img.UrlImagen)}
-                  className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 ${
-                    selectedImage === img.UrlImagen ? 'border-indigo-600' : 'border-slate-200'
-                  }`}
-                >
-                  <img
-                    src={img.UrlImagen}
-                    alt={img.TextoAlternativo ?? product.Nombre}
-                    className="h-full w-full object-cover"
-                  />
-                </button>
-              ))}
+            <div className="flex gap-3 overflow-x-auto pb-1">
+              {product.imagenes.map((img) => {
+                const isCurrent = selectedImage === img.UrlImagen;
+                return (
+                  <button
+                    key={img.IDProductoImagen}
+                    type="button"
+                    onClick={() => setSelectedImage(img.UrlImagen)}
+                    className={`h-20 w-20 shrink-0 overflow-hidden rounded-2xl border-2 transition cursor-pointer ${
+                      isCurrent
+                        ? 'border-slate-950 ring-2 ring-slate-950/15'
+                        : 'border-stone-200 opacity-75 hover:opacity-100'
+                    }`}
+                  >
+                    <img
+                      src={img.UrlImagen}
+                      alt={img.TextoAlternativo ?? product.Nombre}
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                    />
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
 
-        {/* Información de producto y selector de variantes */}
-        <div className="lg:col-span-7 flex flex-col justify-between gap-6">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-indigo-50 px-3 py-0.5 text-xs font-semibold text-indigo-700">
-                {product.NombreCategoria}
+        {/* Columna Derecha: Buy-Box de Alta Conversión (Apple Store Style) */}
+        <div className="lg:col-span-6 rounded-3xl border border-stone-200/90 bg-white p-6 sm:p-8 shadow-xs flex flex-col gap-6">
+          {/* Encabezado de Marca y Producto */}
+          <div className="border-b border-stone-100 pb-5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                {product.Marca || 'Don Arturo Selection'}
               </span>
-              {product.Marca && (
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  · {product.Marca}
+              {selectedVariant && (
+                <span className="font-mono text-xs font-medium text-slate-400">
+                  SKU: <strong className="text-slate-700">{selectedVariant.SKU}</strong>
                 </span>
               )}
             </div>
 
-            <h1 className="mt-2 text-2xl font-extrabold text-slate-900">{product.Nombre}</h1>
-            <p className="mt-2 text-sm text-slate-600">{product.Descripcion}</p>
+            <h1 className="mt-1.5 font-display text-2xl sm:text-3xl font-extrabold text-slate-950 leading-tight">
+              {product.Nombre}
+            </h1>
 
-            {/* Precio de la variante seleccionada con desglose de IVA 12% */}
-            {selectedVariant && (
-              <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <div className="flex flex-wrap items-baseline justify-between gap-4">
-                  <div>
-                    <span className="text-xs font-semibold text-slate-500">
-                      Precio con 12% IVA incluido:
-                    </span>
-                    <div className="text-3xl font-extrabold text-slate-900">
-                      {formatGTQ(selectedVariant.Precio)}
-                    </div>
-                    <p className="mt-0.5 text-[11px] text-slate-500">
-                      Base sin IVA: {formatGTQ(selectedVariant.PrecioSinIVA)} + IVA (12%):{' '}
-                      {formatGTQ(selectedVariant.MontoIVAIncluido)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-mono text-xs font-semibold text-slate-700 block">
-                      SKU: {selectedVariant.SKU}
-                    </span>
-                    <span
-                      className={`mt-1 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                        selectedVariant.ExistenciaDisponible > 0
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      {selectedVariant.ExistenciaDisponible > 0 ? (
-                        <>
-                          <PackageCheck className="h-3.5 w-3.5" />
-                          {selectedVariant.ExistenciaDisponible} disponibles (Física:{' '}
-                          {selectedVariant.ExistenciaFisica}, Reservada:{' '}
-                          {selectedVariant.ExistenciaReservada})
-                        </>
-                      ) : (
-                        <>
-                          <AlertTriangle className="h-3.5 w-3.5" />
-                          Sin existencia disponible
-                        </>
-                      )}
-                    </span>
-                  </div>
+            <p className="prose-pretty mt-3 text-sm text-slate-600 leading-relaxed">
+              {product.Descripcion}
+            </p>
+          </div>
+
+          {/* Precio Principal y Estado de Disponibilidad */}
+          {selectedVariant && (
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                  Precio Final Contado (IVA 12% Incluido)
+                </span>
+                <div className="tabular-price text-3xl sm:text-4xl font-extrabold text-slate-950 mt-0.5">
+                  {formatGTQ(selectedVariant.Precio)}
                 </div>
+                <p className="mt-1 text-xs text-slate-500">
+                  Valor neto sin IVA: <span className="font-medium">{formatGTQ(selectedVariant.PrecioSinIVA)}</span>{' '}
+                  · Impuesto IVA (12%): <span className="font-medium">{formatGTQ(selectedVariant.MontoIVAIncluido)}</span>
+                </p>
               </div>
-            )}
 
-            {/* Selector de Variantes (RF-02) */}
-            <div className="mt-5">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                Selecciona una Variante ({product.variantes.length} opciones):
+              <div className="text-right">
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold ${
+                    selectedVariant.ExistenciaDisponible > 0
+                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                      : 'bg-rose-50 text-rose-800 border border-rose-200'
+                  }`}
+                >
+                  {selectedVariant.ExistenciaDisponible > 0 ? (
+                    <>
+                      <PackageCheck className="h-4 w-4 text-emerald-600" />
+                      <span>
+                        {selectedVariant.ExistenciaDisponible} disponibles para envío
+                        {selectedVariant.ExistenciaReservada > 0
+                          ? ` (${selectedVariant.ExistenciaReservada} en proceso de compra)`
+                          : ''}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="h-4 w-4 text-rose-600" />
+                      <span>Agotado en esta opción</span>
+                    </>
+                  )}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Selector de Configuración / Variantes */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+                Elige tu Configuración ({product.variantes.length}{' '}
+                {product.variantes.length === 1 ? 'opción' : 'opciones'})
               </h2>
-              <div className="mt-2.5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                {product.variantes.map((v) => {
-                  const isSelected = selectedVariant?.IDVariante === v.IDVariante;
-                  return (
-                    <button
-                      key={v.IDVariante}
-                      type="button"
-                      onClick={() => handleSelectVariant(v)}
-                      className={`flex flex-col items-start rounded-xl border p-3 text-left transition ${
-                        isSelected
-                          ? 'border-indigo-600 bg-indigo-50/60 ring-2 ring-indigo-600/20'
-                          : 'border-slate-200 bg-white hover:border-slate-300'
-                      }`}
-                    >
-                      <div className="flex w-full items-center justify-between">
-                        <span className="text-xs font-bold text-slate-900">
+              <span className="text-[11px] text-slate-500">
+                Stock actualizado al instante
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+              {product.variantes.map((v) => {
+                const isSelected = selectedVariant?.IDVariante === v.IDVariante;
+                const outOfStock = v.ExistenciaDisponible <= 0;
+                return (
+                  <button
+                    key={v.IDVariante}
+                    type="button"
+                    onClick={() => handleSelectVariant(v)}
+                    className={`relative flex flex-col items-start rounded-2xl border p-3.5 text-left transition cursor-pointer ${
+                      isSelected
+                        ? 'border-slate-950 bg-stone-50/90 ring-2 ring-slate-950/15 shadow-xs'
+                        : outOfStock
+                          ? 'border-stone-200 bg-stone-50/40 opacity-65 hover:opacity-100'
+                          : 'border-stone-200/90 bg-white hover:border-slate-400'
+                    }`}
+                  >
+                    <div className="flex w-full items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                            isSelected
+                              ? 'border-slate-950 bg-slate-950 text-white'
+                              : 'border-stone-300 bg-white'
+                          }`}
+                        >
+                          {isSelected && <Check className="h-2.5 w-2.5" />}
+                        </span>
+                        <span className="text-xs font-bold text-slate-950">
                           {v.NombreVariante}
                         </span>
-                        <span className="text-xs font-extrabold text-indigo-700">
-                          {formatGTQ(v.Precio)}
-                        </span>
                       </div>
-                      <span className="mt-0.5 font-mono text-[11px] text-slate-500">
-                        SKU: {v.SKU} · Disp: {v.ExistenciaDisponible}
+                      <span className="tabular-price text-xs font-extrabold text-slate-950 shrink-0">
+                        {formatGTQ(v.Precio)}
                       </span>
-                      {v.Atributos && v.Atributos.length > 0 && (
-                        <div className="mt-1.5 flex flex-wrap gap-1">
-                          {v.Atributos.map((attr) => (
-                            <span
-                              key={`${attr.IDAtributo}-${attr.IDValorAtributo}`}
-                              className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-700"
-                            >
-                              {attr.Atributo}: {attr.Valor}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+                    </div>
+
+                    {v.Atributos && v.Atributos.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1 pl-6">
+                        {v.Atributos.map((attr) => (
+                          <span
+                            key={`${attr.IDAtributo}-${attr.IDValorAtributo}`}
+                            className="rounded-md bg-stone-200/70 px-2 py-0.5 text-[10px] font-semibold text-slate-700"
+                          >
+                            {attr.Atributo}: {attr.Valor}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="mt-2 flex w-full items-center justify-between pl-6 text-[11px]">
+                      <span className="font-mono text-slate-400">{v.SKU}</span>
+                      <span
+                        className={
+                          v.ExistenciaDisponible > 0
+                            ? 'font-semibold text-emerald-700'
+                            : 'font-semibold text-rose-600'
+                        }
+                      >
+                        {v.ExistenciaDisponible > 0
+                          ? `${v.ExistenciaDisponible} en stock`
+                          : 'Sin stock'}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Control de cantidad y agregar al carrito (RF-04) */}
-          <div className="border-t border-slate-100 pt-5 flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center rounded-xl border border-slate-300 bg-white">
+          {/* Control de Cantidad y Botones de Compra */}
+          <div className="border-t border-stone-100 pt-5 space-y-4">
+            <div className="flex flex-wrap items-stretch gap-3">
+              <div className="inline-flex items-center rounded-full border border-stone-300 bg-stone-50 px-1">
                 <button
                   type="button"
                   disabled={cantidad <= 1 || maxAvailable <= 0}
                   onClick={() => setCantidad((c) => Math.max(1, c - 1))}
-                  className="px-3.5 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40"
+                  className="h-10 w-10 rounded-full text-base font-bold text-slate-800 hover:bg-white disabled:opacity-40 cursor-pointer"
+                  aria-label="Disminuir cantidad"
                 >
                   −
                 </button>
@@ -270,17 +332,21 @@ export const ProductDetailPage: React.FC = () => {
                   max={Math.max(1, maxAvailable)}
                   value={cantidad}
                   onChange={(e) => {
-                    const val = Math.max(1, Math.min(maxAvailable || 1, Number(e.target.value) || 1));
+                    const val = Math.max(
+                      1,
+                      Math.min(maxAvailable || 1, Number(e.target.value) || 1)
+                    );
                     setCantidad(val);
                   }}
                   aria-label="Cantidad a agregar"
-                  className="w-16 text-center text-sm font-bold text-slate-900 focus:outline-none"
+                  className="w-12 bg-transparent text-center text-sm font-extrabold text-slate-950 focus:outline-none"
                 />
                 <button
                   type="button"
                   disabled={cantidad >= maxAvailable || maxAvailable <= 0}
                   onClick={() => setCantidad((c) => Math.min(maxAvailable, c + 1))}
-                  className="px-3.5 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40"
+                  className="h-10 w-10 rounded-full text-base font-bold text-slate-800 hover:bg-white disabled:opacity-40 cursor-pointer"
+                  aria-label="Aumentar cantidad"
                 >
                   +
                 </button>
@@ -289,35 +355,49 @@ export const ProductDetailPage: React.FC = () => {
               <button
                 type="button"
                 disabled={adding || maxAvailable <= 0}
-                onClick={handleAddToCart}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-40"
+                onClick={() => void handleAddToCart(false)}
+                className="flex-1 inline-flex items-center justify-center gap-2.5 rounded-full bg-slate-950 px-6 py-3.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-40 transition-colors cursor-pointer"
               >
-                <ShoppingCart className="h-4 w-4" />
+                <ShoppingBag className="h-4 w-4" />
                 {maxAvailable <= 0
-                  ? 'Variante sin existencia disponible'
+                  ? 'Agotado en esta configuración'
                   : adding
-                    ? 'Agregando...'
-                    : `Agregar al Carrito · ${formatGTQ((selectedVariant?.Precio ?? 0) * cantidad)}`}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigate('/cart')}
-                className="rounded-xl border border-slate-300 px-4 py-3 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                Ir al Carrito
+                    ? 'Agregando a tu bolsa...'
+                    : `Agregar a la Bolsa · ${formatGTQ((selectedVariant?.Precio ?? 0) * cantidad)}`}
               </button>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 text-[11px] text-slate-500">
-              <span className="inline-flex items-center gap-1">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                Validación de tope de existencia en servidor (RF-04)
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <ShieldCheck className="h-3.5 w-3.5 text-indigo-600" />
-                El precio se congela al confirmar tu pedido en el checkout (RF-02)
-              </span>
+            {maxAvailable > 0 && (
+              <button
+                type="button"
+                disabled={adding}
+                onClick={() => void handleAddToCart(true)}
+                className="w-full rounded-full border border-slate-950 bg-white px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-stone-100 transition cursor-pointer"
+              >
+                Comprar Ahora e Ir a la Bolsa →
+              </button>
+            )}
+
+            {/* Garantías de Conversión Post-CTA */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
+              <div className="flex items-center gap-2 rounded-xl bg-stone-50 p-2.5 border border-stone-200/70">
+                <Truck className="h-4 w-4 text-emerald-700 shrink-0" />
+                <span className="text-[11px] font-medium text-slate-700">
+                  Despacho Express 24–48h en GT
+                </span>
+              </div>
+              <div className="flex items-center gap-2 rounded-xl bg-stone-50 p-2.5 border border-stone-200/70">
+                <CheckCircle2 className="h-4 w-4 text-emerald-700 shrink-0" />
+                <span className="text-[11px] font-medium text-slate-700">
+                  Precio congelado al confirmar
+                </span>
+              </div>
+              <div className="flex items-center gap-2 rounded-xl bg-stone-50 p-2.5 border border-stone-200/70">
+                <RotateCcw className="h-4 w-4 text-emerald-700 shrink-0" />
+                <span className="text-[11px] font-medium text-slate-700">
+                  Devoluciones fáciles en línea
+                </span>
+              </div>
             </div>
           </div>
         </div>
