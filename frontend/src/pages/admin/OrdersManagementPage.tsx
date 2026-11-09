@@ -323,8 +323,8 @@ export const OrdersManagementPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Filtros en servidor */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+      {/* Filtros en servidor (RF-08: Estado, Cliente y Rango de Fechas) */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
         <div className="lg:col-span-2">
           <label htmlFor="ops-orders-search" className="block text-xs font-semibold text-slate-700 mb-1">
             Buscar (N° Pedido, Cliente o Correo)
@@ -367,46 +367,71 @@ export const OrdersManagementPage: React.FC = () => {
         </div>
 
         <div>
-          <label htmlFor="ops-orders-sort" className="block text-xs font-semibold text-slate-700 mb-1">
-            Ordenar por
+          <label htmlFor="ops-orders-from" className="block text-xs font-semibold text-slate-700 mb-1">
+            Fecha Inicio
           </label>
-          <select
-            id="ops-orders-sort"
-            value={ordenarPor}
-            onChange={(e) => setOrdenarPor(e.target.value)}
+          <input
+            id="ops-orders-from"
+            type="date"
+            value={fechaInicio}
+            onChange={(e) => setFechaInicio(e.target.value)}
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-600 focus:outline-none"
-          >
-            <option value="recientes">Más recientes</option>
-            <option value="antiguos">Más antiguos</option>
-            <option value="total_desc">Mayor monto (GTQ)</option>
-            <option value="total_asc">Menor monto (GTQ)</option>
-            <option value="estado_asc">Estado (A-Z)</option>
-          </select>
+          />
         </div>
 
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => void fetchOrders(1)}
-            className="flex-1 py-2 px-4 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 cursor-pointer"
-          >
-            Aplicar
-          </button>
-          {(busqueda || estadoFiltro || fechaInicio || fechaFin) && (
+        <div>
+          <label htmlFor="ops-orders-to" className="block text-xs font-semibold text-slate-700 mb-1">
+            Fecha Fin
+          </label>
+          <input
+            id="ops-orders-to"
+            type="date"
+            value={fechaFin}
+            onChange={(e) => setFechaFin(e.target.value)}
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-600 focus:outline-none"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="ops-orders-sort" className="block text-xs font-semibold text-slate-700">
+            Ordenar por
+          </label>
+          <div className="flex gap-2">
+            <select
+              id="ops-orders-sort"
+              value={ordenarPor}
+              onChange={(e) => setOrdenarPor(e.target.value)}
+              className="flex-1 rounded-xl border border-slate-300 bg-white px-2.5 py-2 text-xs font-semibold focus:border-indigo-600 focus:outline-none"
+            >
+              <option value="recientes">Más recientes</option>
+              <option value="antiguos">Más antiguos</option>
+              <option value="total_desc">Mayor monto (GTQ)</option>
+              <option value="total_asc">Menor monto (GTQ)</option>
+              <option value="estado_asc">Estado (A-Z)</option>
+            </select>
             <button
               type="button"
-              onClick={() => {
-                setBusqueda('');
-                setEstadoFiltro('');
-                setFechaInicio('');
-                setFechaFin('');
-                void fetchOrders(1);
-              }}
-              className="py-2 px-3 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 cursor-pointer"
+              onClick={() => void fetchOrders(1)}
+              className="py-2 px-3.5 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 cursor-pointer"
             >
-              Limpiar
+              Filtrar
             </button>
-          )}
+            {(busqueda || estadoFiltro || fechaInicio || fechaFin) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setBusqueda('');
+                  setEstadoFiltro('');
+                  setFechaInicio('');
+                  setFechaFin('');
+                  void fetchOrders(1);
+                }}
+                className="py-2 px-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 cursor-pointer"
+              >
+                Limpiar
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

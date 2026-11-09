@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { MapPin, Plus, Star, Trash2, Edit3 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { MapPin, Plus, Star, Trash2, Edit3, UserX } from 'lucide-react';
 import { AddressRecord } from '../../types/api.types';
 import { authApi } from '../../api/auth.api';
 import { useAuth } from '../../context/AuthContext';
@@ -10,8 +11,9 @@ import { FormField } from '../../components/ui/FormField';
 import { RoleBadge } from '../../components/ui/StatusBadge';
 
 export const ProfileAddressesPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
   const [addresses, setAddresses] = useState<AddressRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,6 +22,9 @@ export const ProfileAddressesPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<AddressRecord | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const [deactivateModalOpen, setDeactivateModalOpen] = useState(false);
+  const [deactivating, setDeactivating] = useState(false);
 
   const [alias, setAlias] = useState('Casa');
   const [nombreDestinatario, setNombreDestinatario] = useState('');
@@ -126,6 +131,29 @@ export const ProfileAddressesPage: React.FC = () => {
     }
   };
 
+  const handleDeactivateSelf = async () => {
+    setDeactivating(true);
+    try {
+      await authApi.deactivateSelf();
+      await logout();
+      showToast({
+        type: 'info',
+        title: 'Cuenta desactivada correctamente',
+        message: 'Tu historial de pedidos se conserva intacto en el sistema (RF-01).',
+      });
+      navigate('/login');
+    } catch (err) {
+      showToast({
+        type: 'error',
+        title: 'No se pudo desactivar la cuenta',
+        message: err instanceof Error ? err.message : 'Intente nuevamente.',
+      });
+    } finally {
+      setDeactivating(false);
+      setDeactivateModalOpen(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       {/* Encabezado de perfil */}
@@ -139,14 +167,26 @@ export const ProfileAddressesPage: React.FC = () => {
             Correo: <strong>{user?.correo}</strong> · ID Usuario: <strong>#{user?.idUsuario}</strong>
           </p>
         </div>
-        <button
-          type="button"
-          onClick={openNewModal}
-          className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700"
-        >
-          <Plus className="h-4 w-4" />
-          Nueva Dirección de Entrega
-        </button>
+        <div className="flex flex-wrap items-center gap-2.5">
+          {user?.rol !== 'Administrador' && (
+            <button
+              type="button"
+              onClick={() => setDeactivateModalOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 cursor-pointer"
+            >
+              <UserX className="h-4 w-4" />
+              Desactivar mi cuenta (RF-01)
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={openNewModal}
+            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 cursor-pointer"
+          >
+            <Plus className="h-4 w-4" />
+            Nueva Dirección de Entrega
+          </button>
+        </div>
       </div>
 
       {/* Listado de direcciones con protección Anti-IDOR en Backend/BD */}
@@ -363,6 +403,40 @@ export const ProfileAddressesPage: React.FC = () => {
             </button>
           </div>
         </form>
+      </ModalDialog>
+
+      {/* Modal de confirmación para autodesactivación de cuenta (RF-01) */}
+      <ModalDialog
+        open={deactivateModalOpen}
+        onClose={() => setDeactivateModalOpen(false)}
+        title="¿Desactivar tu cuenta de ShopCart?"
+        subtitle="Desactivación lógica sin pérdida de historial transaccional (RF-01)"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-600 leading-relaxed">
+            Al desactivar tu cuenta, tus sesiones activas se revocarán inmediatamente y no podrás
+            iniciar sesión hasta que un <strong>Administrador</strong> la reactive desde el panel de
+            usuarios. Tus pedidos y comprobantes históricos permanecerán intactos.
+          </p>
+          <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-100">
+            <button
+              type="button"
+              autoFocus
+              onClick={() => setDeactivateModalOpen(false)}
+              className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
+            >
+              Conservar cuenta activa
+            </button>
+            <button
+              type="button"
+              disabled={deactivating}
+              onClick={() => void handleDeactivateSelf()}
+              className="rounded-xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white hover:bg-rose-700 disabled:opacity-50 cursor-pointer"
+            >
+              {deactivating ? 'Desactivando...' : 'Sí, desactivar mi cuenta'}
+            </button>
+          </div>
+        </div>
       </ModalDialog>
     </div>
   );

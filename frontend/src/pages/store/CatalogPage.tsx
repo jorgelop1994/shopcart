@@ -92,7 +92,7 @@ export const CatalogPage: React.FC = () => {
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/30 px-3 py-1 text-xs font-semibold text-indigo-100 ring-1 ring-inset ring-indigo-300/30">
               <Tag className="h-3.5 w-3.5" />
-              Cupones activos: BIENVENIDA10 (10%) · QUETZAL50 (Q 50) · TECH15 (15% Tecnología)
+              Cupones activos: BIENVENIDA10 (10%) · QUETZAL50 (Q 50) · MODA20 (20% Ropa y Moda)
             </span>
             <h1 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">
               Catálogo Oficial ShopCart Guatemala

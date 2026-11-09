@@ -93,3 +93,19 @@ textarea:user-invalid {
 input:user-valid:not([type="search"]):not([type="checkbox"]):not([type="radio"]) {
   border-color: #cbd5e1;
 }
+
+/* ============================================================================
+   Estilos de Impresión / Exportación PDF (Extra +2 pts Dashboard Operativo)
+   ============================================================================ */
+@media print {
+  header,
+  footer,
+  nav,
+  button {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+  }
+}

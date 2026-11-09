@@ -112,6 +112,13 @@ export const authApi = {
     };
   },
 
+  async deactivateSelf(): Promise<void> {
+    await apiRequest('/auth/deactivate-self', {
+      method: 'POST',
+    });
+    setStoredSession(null);
+  },
+
   // --- Administración de Usuarios (RF-01 Admin) ---
   async listUsers(params: {
     pagina?: number;

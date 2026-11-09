@@ -290,12 +290,12 @@ export const CartPage: React.FC = () => {
 
               <div className="mt-2 flex flex-wrap gap-1 text-[10px] text-slate-500">
                 <span>Prueba:</span>
-                {['BIENVENIDA10', 'QUETZAL50', 'TECH15', 'EXPIRADO2025'].map((c) => (
+                {['BIENVENIDA10', 'QUETZAL50', 'MODA20', 'ULTIMO1', 'VENCIDO2025'].map((c) => (
                   <button
                     key={c}
                     type="button"
                     onClick={() => setCouponCode(c)}
-                    className="rounded bg-white px-1.5 py-0.5 font-mono border border-slate-200 hover:border-indigo-400"
+                    className="rounded bg-white px-1.5 py-0.5 font-mono border border-slate-200 hover:border-indigo-400 cursor-pointer"
                   >
                     {c}
                   </button>

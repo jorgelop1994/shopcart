@@ -70,7 +70,7 @@ export const CatalogManagementPage: React.FC = () => {
   const [varPrice, setVarPrice] = useState<string>('199.00');
   const [varInitialStock, setVarInitialStock] = useState<string>('15');
   const [varActive, setVarActive] = useState<boolean>(true);
-  const [varAttrValues, setVarAttrValues] = useState<number[]>([]);
+  const [varAttrMap, setVarAttrMap] = useState<Record<number, number>>({});
   const [savingVariant, setSavingVariant] = useState<boolean>(false);
 
   // Formulario de imagen dentro del modal de variantes
@@ -232,7 +232,7 @@ export const CatalogManagementPage: React.FC = () => {
     setVarPrice('250.00');
     setVarInitialStock('10');
     setVarActive(true);
-    setVarAttrValues([]);
+    setVarAttrMap({});
   };
 
   const handleSelectVariantForEdit = (v: ProductVariantRecord) => {
@@ -242,7 +242,13 @@ export const CatalogManagementPage: React.FC = () => {
     setVarPrice(String(v.Precio));
     setVarInitialStock('0');
     setVarActive(v.Activa);
-    setVarAttrValues(v.Atributos ? v.Atributos.map((a) => a.IDValorAtributo) : []);
+    const map: Record<number, number> = {};
+    if (v.Atributos) {
+      for (const a of v.Atributos) {
+        map[a.IDAtributo] = a.IDValorAtributo;
+      }
+    }
+    setVarAttrMap(map);
   };
 
   const handleSaveVariant = async (e: React.FormEvent) => {
@@ -254,6 +260,13 @@ export const CatalogManagementPage: React.FC = () => {
       return;
     }
 
+    const atributosSeleccionados = Object.entries(varAttrMap)
+      .filter(([, idValor]) => idValor > 0)
+      .map(([idAtributo, idValorAtributo]) => ({
+        idAtributo: Number(idAtributo),
+        idValorAtributo: Number(idValorAtributo),
+      }));
+
     setSavingVariant(true);
     try {
       await catalogApi.saveVariant({
@@ -264,7 +277,7 @@ export const CatalogManagementPage: React.FC = () => {
         precio: priceNum,
         existenciaInicial: editingVariantId ? 0 : Math.max(0, Number(varInitialStock) || 0),
         activa: varActive,
-        idsValoresAtributo: varAttrValues.length > 0 ? varAttrValues : undefined,
+        atributos: atributosSeleccionados.length > 0 ? atributosSeleccionados : undefined,
       });
       const updatedDetail = await catalogApi.getProductById(selectedProductDetail.IDProducto);
       setSelectedProductDetail(updatedDetail);
@@ -539,7 +552,11 @@ export const CatalogManagementPage: React.FC = () => {
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   id="cat-prod-search"
+                  name="busqueda"
                   type="search"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={(e) => {
@@ -949,6 +966,46 @@ export const CatalogManagementPage: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {attributes.length > 0 && (
+                <fieldset className="border border-slate-200 rounded-xl p-3 bg-white">
+                  <legend className="px-2 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                    Atributos de Variante (Talla, Color, Capacidad — RF-02)
+                  </legend>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-1">
+                    {attributes.map((attr) => (
+                      <div key={attr.idAtributo}>
+                        <label
+                          htmlFor={`var-attr-${attr.idAtributo}`}
+                          className="block text-xs font-semibold text-slate-700 mb-1"
+                        >
+                          {attr.nombreAtributo}
+                        </label>
+                        <select
+                          id={`var-attr-${attr.idAtributo}`}
+                          name={`atributo_${attr.idAtributo}`}
+                          value={varAttrMap[attr.idAtributo] ?? ''}
+                          onChange={(e) => {
+                            const val = Number(e.target.value) || 0;
+                            setVarAttrMap((prev) => ({
+                              ...prev,
+                              [attr.idAtributo]: val,
+                            }));
+                          }}
+                          className="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs"
+                        >
+                          <option value="">— Sin asignar —</option>
+                          {attr.valores.map((v) => (
+                            <option key={v.IDValorAtributo} value={v.IDValorAtributo}>
+                              {v.Valor}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                </fieldset>
+              )}
 
               <div className="flex justify-end">
                 <button
