@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+}
+
+/* ============================================================================
+   Modern Web Guidance: Native <dialog> Scroll Containment & Styling
+   - Evita que el scroll sobre el backdrop o dentro del modal desplace la página
+   - No aplica display global sobre <dialog> para no romper su estado cerrado
+   ============================================================================ */
+dialog:modal {
+  overscroll-behavior: contain;
+  margin: auto;
+}
+
+dialog::backdrop {
+  background-color: rgb(15 23 42 / 0.55);
+  backdrop-filter: blur(3px);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+/* ============================================================================
+   Modern Web Guidance: Responsive Data Tables (Container Queries + Sticky)
+   ============================================================================ */
+.table-wrapper {
+  overflow: auto;
+  max-inline-size: 100%;
+  container-type: inline-size;
+}
+
+.table-wrapper table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.table-wrapper thead {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 10;
+}
+
+.table-wrapper tbody th {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 5;
+  background-color: #ffffff;
+}
+
+@container (width < 640px) {
+  .table-wrapper.responsive-stack table,
+  .table-wrapper.responsive-stack thead,
+  .table-wrapper.responsive-stack tbody,
+  .table-wrapper.responsive-stack tr,
+  .table-wrapper.responsive-stack th,
+  .table-wrapper.responsive-stack td {
+    display: block;
+  }
+
+  .table-wrapper.responsive-stack thead {
+    display: none;
+  }
+
+  .table-wrapper.responsive-stack tbody tr {
+    margin-block-end: 0.875rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    background: #ffffff;
+  }
+
+  .table-wrapper.responsive-stack tbody td[data-label]::before {
+    content: attr(data-label) ": ";
+    font-weight: 600;
+    color: #475569;
+  }
+}
+
+/* ============================================================================
+   Modern Web Guidance: Validate Input After Interaction (:user-invalid)
+   ============================================================================ */
+input:user-invalid,
+select:user-invalid,
+textarea:user-invalid {
+  border-color: #dc2626;
+  background-color: #fef2f2;
+}
+
+input:user-valid:not([type="search"]):not([type="checkbox"]):not([type="radio"]) {
+  border-color: #cbd5e1;
+}
