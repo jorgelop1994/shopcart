@@ -184,7 +184,7 @@ EXEC dbo.SP_Catalogo_CrearProducto
     @Nombre       = N'Camisa Oxford Algodón Pima',
     @Descripcion  = N'Camisa de corte moderno confeccionada en 100% algodón Pima transpirable.',
     @Marca        = N'Don Arturo Collection',
-    @ImagenesJSON = N'[{"urlImagen":"https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Camisa Oxford","orden":1,"esPrincipal":1}]';
+    @ImagenesJSON = N'[{"urlImagen":"/images/products/product-1.jpg","textoAlternativo":"Camisa Oxford — Fotografía de Estudio","orden":1,"esPrincipal":1},{"urlImagen":"https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Camisa Oxford — Vista Alternativa","orden":2,"esPrincipal":0}]';
 
 DECLARE @P1 INT = (SELECT IDProducto FROM dbo.Productos WHERE Nombre = N'Camisa Oxford Algodón Pima');
 DECLARE @AttrJSON1 NVARCHAR(MAX) = CONCAT(N'[{"idAtributo":', @AttrTalla, N',"idValorAtributo":', @ValM, N'},{"idAtributo":', @AttrColor, N',"idValorAtributo":', @ValAzul, N'}]');
@@ -200,7 +200,7 @@ EXEC dbo.SP_Catalogo_CrearProducto
     @Nombre       = N'Chumpa Impermeable Rompevientos Sierra',
     @Descripcion  = N'Chumpa térmica ligera con costuras selladas y capucha ajustable para clima frío y lluvia.',
     @Marca        = N'Pentandra Outdoor',
-    @ImagenesJSON = N'[{"urlImagen":"https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Chumpa Impermeable","orden":1,"esPrincipal":1}]';
+    @ImagenesJSON = N'[{"urlImagen":"/images/products/product-2.jpg","textoAlternativo":"Chumpa Impermeable — Fotografía de Estudio","orden":1,"esPrincipal":1},{"urlImagen":"https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Chumpa Impermeable — Vista Alternativa","orden":2,"esPrincipal":0}]';
 
 DECLARE @P2 INT = (SELECT IDProducto FROM dbo.Productos WHERE Nombre = N'Chumpa Impermeable Rompevientos Sierra');
 DECLARE @AttrJSON3 NVARCHAR(MAX) = CONCAT(N'[{"idAtributo":', @AttrTalla, N',"idValorAtributo":', @ValM, N'},{"idAtributo":', @AttrColor, N',"idValorAtributo":', @ValVerde, N'}]');
@@ -216,7 +216,7 @@ EXEC dbo.SP_Catalogo_CrearProducto
     @Nombre       = N'Tenis Running CloudStep Pro',
     @Descripcion  = N'Calzado deportivo con suela de amortiguación reactiva y malla respirable.',
     @Marca        = N'CloudStep',
-    @ImagenesJSON = N'[{"urlImagen":"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Tenis Running","orden":1,"esPrincipal":1}]';
+    @ImagenesJSON = N'[{"urlImagen":"/images/products/product-3.jpg","textoAlternativo":"Tenis Running — Fotografía de Estudio","orden":1,"esPrincipal":1},{"urlImagen":"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Tenis Running — Vista Alternativa","orden":2,"esPrincipal":0}]';
 
 DECLARE @P3 INT = (SELECT IDProducto FROM dbo.Productos WHERE Nombre = N'Tenis Running CloudStep Pro');
 DECLARE @AttrJSON5 NVARCHAR(MAX) = CONCAT(N'[{"idAtributo":', @AttrTalla, N',"idValorAtributo":', @Val40, N'},{"idAtributo":', @AttrColor, N',"idValorAtributo":', @ValNegro, N'}]');
@@ -232,7 +232,7 @@ EXEC dbo.SP_Catalogo_CrearProducto
     @Nombre       = N'Botines Urbanos de Cuero Artesanal',
     @Descripcion  = N'Botines de cuero genuino cosidos a mano con plantilla ortopédica de larga duración.',
     @Marca        = N'Don Arturo Footwear',
-    @ImagenesJSON = N'[{"urlImagen":"https://images.unsplash.com/photo-1520639888713-7851133b1ed0?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Botines de Cuero","orden":1,"esPrincipal":1}]';
+    @ImagenesJSON = N'[{"urlImagen":"/images/products/product-4.jpg","textoAlternativo":"Botines de Cuero — Fotografía de Estudio","orden":1,"esPrincipal":1},{"urlImagen":"https://images.unsplash.com/photo-1520639888713-7851133b1ed0?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Botines de Cuero — Vista Alternativa","orden":2,"esPrincipal":0}]';
 
 DECLARE @P4 INT = (SELECT IDProducto FROM dbo.Productos WHERE Nombre = N'Botines Urbanos de Cuero Artesanal');
 EXEC dbo.SP_Catalogo_GuardarVariante @IDUsuario = @IDAdmin, @IDProducto = @P4, @SKU = N'CAL-BOT-42-NEG', @NombreVariante = N'Talla 42 - Negro Clásico', @Precio = 790.00, @ExistenciaInicial = 10, @AtributosJSON = @AttrJSON5;
@@ -244,7 +244,7 @@ EXEC dbo.SP_Catalogo_CrearProducto
     @Nombre       = N'Audífonos Inalámbricos Studio ANC Pro',
     @Descripcion  = N'Cancelación activa de ruido híbrida, 40 horas de batería y audio de alta fidelidad.',
     @Marca        = N'SonicPulse',
-    @ImagenesJSON = N'[{"urlImagen":"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Audífonos ANC","orden":1,"esPrincipal":1}]';
+    @ImagenesJSON = N'[{"urlImagen":"/images/products/product-5.jpg","textoAlternativo":"Audífonos ANC — Fotografía de Estudio","orden":1,"esPrincipal":1},{"urlImagen":"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Audífonos ANC — Vista Alternativa","orden":2,"esPrincipal":0}]';
 
 DECLARE @P5 INT = (SELECT IDProducto FROM dbo.Productos WHERE Nombre = N'Audífonos Inalámbricos Studio ANC Pro');
 DECLARE @AttrJSON7 NVARCHAR(MAX) = CONCAT(N'[{"idAtributo":', @AttrColor, N',"idValorAtributo":', @ValNegro, N'}]');
@@ -260,7 +260,7 @@ EXEC dbo.SP_Catalogo_CrearProducto
     @Nombre       = N'Teclado Mecánico Compacto 75% Hot-Swap',
     @Descripcion  = N'Switches táctiles lubricados de fábrica, conexión triple (Bluetooth, 2.4GHz y USB-C).',
     @Marca        = N'KeyCraft',
-    @ImagenesJSON = N'[{"urlImagen":"https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Teclado Mecánico","orden":1,"esPrincipal":1}]';
+    @ImagenesJSON = N'[{"urlImagen":"/images/products/product-6.jpg","textoAlternativo":"Teclado Mecánico — Fotografía de Estudio","orden":1,"esPrincipal":1},{"urlImagen":"https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Teclado Mecánico — Vista Alternativa","orden":2,"esPrincipal":0}]';
 
 DECLARE @P6 INT = (SELECT IDProducto FROM dbo.Productos WHERE Nombre = N'Teclado Mecánico Compacto 75% Hot-Swap');
 EXEC dbo.SP_Catalogo_GuardarVariante @IDUsuario = @IDAdmin, @IDProducto = @P6, @SKU = N'TEC-KB75-GRY', @NombreVariante = N'Layout Español - Gris Espacial', @Precio = 560.00, @ExistenciaInicial = 16, @AtributosJSON = @AttrJSON8;
@@ -272,7 +272,7 @@ EXEC dbo.SP_Catalogo_CrearProducto
     @Nombre       = N'Termo Insulado Acero Inoxidable Volcán',
     @Descripcion  = N'Doble pared al vacío que conserva bebidas calientes por 12 horas y frías por 24 horas.',
     @Marca        = N'Pentandra Home',
-    @ImagenesJSON = N'[{"urlImagen":"https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Termo Acero","orden":1,"esPrincipal":1}]';
+    @ImagenesJSON = N'[{"urlImagen":"/images/products/product-7.jpg","textoAlternativo":"Termo Acero — Fotografía de Estudio","orden":1,"esPrincipal":1},{"urlImagen":"https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Termo Acero — Vista Alternativa","orden":2,"esPrincipal":0}]';
 
 DECLARE @P7 INT = (SELECT IDProducto FROM dbo.Productos WHERE Nombre = N'Termo Insulado Acero Inoxidable Volcán');
 DECLARE @AttrJSON9  NVARCHAR(MAX) = CONCAT(N'[{"idAtributo":', @AttrCap, N',"idValorAtributo":', @Val500, N'},{"idAtributo":', @AttrColor, N',"idValorAtributo":', @ValNegro, N'}]');
@@ -288,7 +288,7 @@ EXEC dbo.SP_Catalogo_CrearProducto
     @Nombre       = N'Set Prensa Francesa Borosilicato + Café Reserva Antigua',
     @Descripcion  = N'Prensa francesa de vidrio de borosilicato con filtro triple e infusión de café de altura.',
     @Marca        = N'Don Arturo Café',
-    @ImagenesJSON = N'[{"urlImagen":"https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Prensa Francesa","orden":1,"esPrincipal":1}]';
+    @ImagenesJSON = N'[{"urlImagen":"/images/products/product-8.jpg","textoAlternativo":"Prensa Francesa — Fotografía de Estudio","orden":1,"esPrincipal":1},{"urlImagen":"https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Prensa Francesa — Vista Alternativa","orden":2,"esPrincipal":0}]';
 
 DECLARE @P8 INT = (SELECT IDProducto FROM dbo.Productos WHERE Nombre = N'Set Prensa Francesa Borosilicato + Café Reserva Antigua');
 EXEC dbo.SP_Catalogo_GuardarVariante @IDUsuario = @IDAdmin, @IDProducto = @P8, @SKU = N'HOG-PRE-750-STD', @NombreVariante = N'750ml + 400g Café Grano', @Precio = 336.00, @ExistenciaInicial = 22, @AtributosJSON = NULL;
@@ -300,7 +300,7 @@ EXEC dbo.SP_Catalogo_CrearProducto
     @Nombre       = N'Mochila Ejecutiva Impermeable Nomad Pro',
     @Descripcion  = N'Compartimento acolchado para laptop de 15.6 pulgadas, puerto USB y tela repelente al agua.',
     @Marca        = N'NomadGear',
-    @ImagenesJSON = N'[{"urlImagen":"https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Mochila Ejecutiva","orden":1,"esPrincipal":1}]';
+    @ImagenesJSON = N'[{"urlImagen":"/images/products/product-9.jpg","textoAlternativo":"Mochila Ejecutiva — Fotografía de Estudio","orden":1,"esPrincipal":1},{"urlImagen":"https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Mochila Ejecutiva — Vista Alternativa","orden":2,"esPrincipal":0}]';
 
 DECLARE @P9 INT = (SELECT IDProducto FROM dbo.Productos WHERE Nombre = N'Mochila Ejecutiva Impermeable Nomad Pro');
 DECLARE @AttrJSON11 NVARCHAR(MAX) = CONCAT(N'[{"idAtributo":', @AttrCap, N',"idValorAtributo":', @Val15P, N'},{"idAtributo":', @AttrColor, N',"idValorAtributo":', @ValNegro, N'}]');
@@ -313,7 +313,7 @@ EXEC dbo.SP_Catalogo_CrearProducto
     @Nombre       = N'Bolso Weekender Lona Encerada y Cuero',
     @Descripcion  = N'Bolso de mano para viajes cortos con compartimento independiente para calzado.',
     @Marca        = N'NomadGear',
-    @ImagenesJSON = N'[{"urlImagen":"https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Bolso Weekender","orden":1,"esPrincipal":1}]';
+    @ImagenesJSON = N'[{"urlImagen":"/images/products/product-10.jpg","textoAlternativo":"Bolso Weekender — Fotografía de Estudio","orden":1,"esPrincipal":1},{"urlImagen":"https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&w=800&q=80","textoAlternativo":"Bolso Weekender — Vista Alternativa","orden":2,"esPrincipal":0}]';
 
 DECLARE @P10 INT = (SELECT IDProducto FROM dbo.Productos WHERE Nombre = N'Bolso Weekender Lona Encerada y Cuero');
 EXEC dbo.SP_Catalogo_GuardarVariante @IDUsuario = @IDAdmin, @IDProducto = @P10, @SKU = N'MOC-WKD-VER', @NombreVariante = N'Capacidad 45L - Verde Olivo', @Precio = 672.00, @ExistenciaInicial = 12, @AtributosJSON = NULL;

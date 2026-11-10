@@ -13,9 +13,11 @@ const sqlConfig: sql.config = {
   server: env.DB_HOST,
   port: env.DB_PORT,
   database: env.DB_NAME,
+  connectionTimeout: 30000,
+  requestTimeout: 30000,
   pool: {
     max: 20,
-    min: 2,
+    min: 0,
     idleTimeoutMillis: 30000,
   },
   options: {
@@ -28,14 +30,27 @@ const sqlConfig: sql.config = {
 let poolPromise: Promise<ConnectionPool> | null = null;
 
 export async function getDbPool(): Promise<ConnectionPool> {
-  if (!poolPromise) {
-    const pool = new sql.ConnectionPool(sqlConfig);
-    pool.on('error', (err) => {
-      console.error('❌ Error en el pool de conexiones de SQL Server:', err);
+  if (poolPromise) {
+    try {
+      const existingPool = await poolPromise;
+      if (existingPool.connected) {
+        return existingPool;
+      }
       poolPromise = null;
-    });
-    poolPromise = pool.connect();
+    } catch {
+      poolPromise = null;
+    }
   }
+
+  const pool = new sql.ConnectionPool(sqlConfig);
+  pool.on('error', (err) => {
+    console.error('❌ Error en el pool de conexiones de SQL Server:', err);
+    poolPromise = null;
+  });
+  poolPromise = pool.connect().catch((err) => {
+    poolPromise = null;
+    throw err;
+  });
   return poolPromise;
 }
 

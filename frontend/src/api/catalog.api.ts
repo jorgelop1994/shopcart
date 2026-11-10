@@ -84,7 +84,25 @@ export const catalogApi = {
     soloActivos?: boolean;
     ordenarPor?: string;
   }): Promise<PaginatedResult<ProductSummaryRecord>> {
-    return apiRequest<PaginatedResult<ProductSummaryRecord>>('/products', { query: params });
+    const raw = await apiRequest<
+      PaginatedResult<
+        ProductSummaryRecord & {
+          UrlImagenPrincipal?: string | null;
+          TotalVariantes?: number;
+        }
+      >
+    >('/products', { query: params });
+
+    return {
+      ...raw,
+      items: (raw.items ?? []).map((item) => ({
+        ...item,
+        ImagenPrincipal: item.ImagenPrincipal ?? item.UrlImagenPrincipal ?? null,
+        TotalVariantesActivas: item.TotalVariantesActivas ?? item.TotalVariantes ?? 0,
+        TieneDisponibilidad:
+          item.TieneDisponibilidad ?? Number(item.ExistenciaDisponibleTotal ?? 0) > 0,
+      })),
+    };
   },
 
   async getProductDetail(idProducto: number): Promise<ProductDetailRecord> {
